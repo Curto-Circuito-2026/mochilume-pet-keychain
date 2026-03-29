@@ -1,9 +1,12 @@
 #ifndef ACTIVITY_H
 #define ACTIVITY_H
 #include "HalConfig.h"
+#include "DisplayManager.h"
 
 class Activity {
-    public:
+    protected:
+        Adafruit_GC9A01A* _tft = DisplayManager::getInstance()->getTFT();
+    public: 
         const char* name;
         const uint8_t* icon;
 
