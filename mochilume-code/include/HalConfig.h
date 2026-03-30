@@ -16,6 +16,15 @@
 #define SCREEN_RADIUS 120
 #define SCREEN_CENTER 120
 
+// --- BUTTONS ---
+//definir pinos reais
+#define BTN_UP       39
+#define BTN_DOWN     38
+#define BTN_LEFT     37
+#define BTN_RIGHT    36
+#define BTN_A        35
+#define BTN_B        34
+
 // --- SYSTEM SETTINGS ---
 #define TARGET_FPS   60
 #define FRAME_DELAY  (1000 / TARGET_FPS)
