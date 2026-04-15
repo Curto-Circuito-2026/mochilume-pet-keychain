@@ -42,4 +42,9 @@
 #define MPU_SDA      21
 #define MPU_SCL      22
 
+
+//PATH DE ARQUIVO DE SAVE
+#define PLAYER_SAVE_PATH "/player.sav"
+
+
 #endif
