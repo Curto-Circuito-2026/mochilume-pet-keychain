@@ -2,18 +2,25 @@
 #include "HalConfig.h"
 #include "DisplayManager.h"
 #include "ActivityManager.h"
+#include "InputManager.h"
 #include "Test.h"
 
 DisplayManager* display;
 ActivityManager* activity;
+InputManager* input;
 
 Test* testActivity = new Test();
 
 void setup() {
     Serial.begin(115200);
     delay(2000); //delay pra dar tempo do platformio abrir o serial e n perder os prints
+    
     display = DisplayManager::getInstance();
     display->begin();
+    
+    input = InputManager::getInstance();
+    input->begin();
+    
     activity = ActivityManager::getInstance();
     activity->registerActivity(testActivity);
     activity->setActivity("test");
