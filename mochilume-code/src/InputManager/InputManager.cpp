@@ -15,7 +15,7 @@ bool InputManager::begin() {
     for(uint8_t btn : buttons) {
         // oq tava escrito aqui era mentira!!!!!
         // coloque resistor de 10k nos seus botoes
-        pinMode(btn, INPUT_PULLUP);
+        pinMode(btn, INPUT_PULLDOWN);
     }
 
     if (!_mpu.begin()) {
