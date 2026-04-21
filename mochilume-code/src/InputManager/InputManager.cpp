@@ -13,8 +13,8 @@ InputManager* InputManager::getInstance() {
 bool InputManager::begin() {
     uint8_t buttons[] = {BTN_UP, BTN_DOWN, BTN_LEFT, BTN_RIGHT, BTN_A, BTN_B};
     for(uint8_t btn : buttons) {
-        //descobri q se botar pullup nao precisa por 1 resistor pra cada botao
-        //mas ai o botao fica invertido 1 = solto ; 0 = pressionado
+        // oq tava escrito aqui era mentira!!!!!
+        // coloque resistor de 10k nos seus botoes
         pinMode(btn, INPUT_PULLUP);
     }
 
