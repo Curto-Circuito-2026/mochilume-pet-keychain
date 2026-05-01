@@ -22,8 +22,8 @@
 #define BTN_DOWN     38
 #define BTN_LEFT     37
 #define BTN_RIGHT    36
-#define BTN_A        35
-#define BTN_B        34
+#define BTN_A        27
+#define BTN_B        26
 
 // --- SYSTEM SETTINGS ---
 #define TARGET_FPS   60

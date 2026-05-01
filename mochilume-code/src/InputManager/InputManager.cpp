@@ -31,12 +31,12 @@ bool InputManager::begin() {
 }
 
 void InputManager::update() {
-    _btnStates[0] = !digitalRead(BTN_UP);
-    _btnStates[1] = !digitalRead(BTN_DOWN);
-    _btnStates[2] = !digitalRead(BTN_LEFT);
-    _btnStates[3] = !digitalRead(BTN_RIGHT);
-    _btnStates[4] = !digitalRead(BTN_A);
-    _btnStates[5] = !digitalRead(BTN_B);
+    _btnStates[0] = digitalRead(BTN_UP);
+    _btnStates[1] = digitalRead(BTN_DOWN);
+    _btnStates[2] = digitalRead(BTN_LEFT);
+    _btnStates[3] = digitalRead(BTN_RIGHT);
+    _btnStates[4] = digitalRead(BTN_A);
+    _btnStates[5] = digitalRead(BTN_B);
 
     // 2. Leitura da IMU
     sensors_event_t a, g, temp;
@@ -55,5 +55,5 @@ void InputManager::update() {
 }
 
 bool InputManager::isPressed(uint8_t pin) {
-    return !digitalRead(pin);
+    return digitalRead(pin);
 }
