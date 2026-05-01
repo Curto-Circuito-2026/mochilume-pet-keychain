@@ -45,6 +45,9 @@
 #define MPU_SDA      21
 #define MPU_SCL      22
 
+// --- BATTERY (ADC) ---
+// divisor de tensão com 2 resistores de 10k para medir até 3.3v
+#define BATTERY_PIN  35
 
 //PATH DE ARQUIVO DE SAVE
 #define PLAYER_SAVE_PATH "/player.sav"
