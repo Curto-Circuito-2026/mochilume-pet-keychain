@@ -3,13 +3,13 @@
 
 #include <Arduino.h>
 
-// --- DISPLAY SETTINGS (GC9A01) ---
+// --- DISPLAY SETTINGS (GC9A01) (VSPI) ---
 #define TFT_RES      4
 #define TFT_CS       5
 #define TFT_DC       15
 #define TFT_MOSI     23
 #define TFT_SCLK     18
-#define TFT_BL       22
+#define TFT_BL       4
 
 #define SCREEN_WIDTH  240
 #define SCREEN_HEIGHT 240
@@ -29,11 +29,14 @@
 #define TARGET_FPS   60
 #define FRAME_DELAY  (1000 / TARGET_FPS)
 
-// --- LORA SX1268 (SPI) ---
-#define LORA_CS      14
-#define LORA_DIO1    26
-#define LORA_RST     12
-#define LORA_BUSY    13
+// --- LORA LLCC68 (HSPI) ---
+#define LORA_SCK     14
+#define LORA_MISO    12
+#define LORA_MOSI    13
+#define LORA_CS      2
+#define LORA_RST     32
+#define LORA_BUSY    34
+#define LORA_DIO1    33
 
 // --- STORAGE (SD CARD) ---
 #define SD_CS        2
