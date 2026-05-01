@@ -6,8 +6,9 @@
 class Test : public Activity {
 private:
     float y;
-    int squareSize;
-    Adafruit_GC9A01A* tft;
+    int16_t squareSize;
+    UIElement* square;
+    UIElement* square2;
 
 public:
     Test();
