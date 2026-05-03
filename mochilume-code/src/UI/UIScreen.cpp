@@ -19,7 +19,7 @@ void UIScreen::addChild(UIElement* child){
     if(this->elements[child->id] == nullptr){
         child->setScreen(this);
         this->elements[child->id] = child;
-        Serial.print("ADD CHILD");
+        child->index = this->elements.size();
         ScreenManager::getInstance()->setDirtyFlag(true);
     }
 }
@@ -30,10 +30,24 @@ void UIScreen::setVisibility(bool visible){
 
 }
 
-void UIScreen::setSelectedElement(UIElement* element){
-    this->selectedElement = element;
+void UIScreen::setSelectedIndex(uint8_t index){
+    if(index > this->elements.size()){index = 0;}
+    if(index < 0){index = this->elements.size();}
+    if(this->selectedElement)this->selectedElement->setState(UIState::BASE);
+    
+    this->selectedElement = nullptr;
+    for (std::pair<std::string, UIElement *> c : this->elements){
+        if(c.second->index == index){
+            this->selectedElement = c.second;
+            this->selectedElement->setState(UIState::HOVERED);
+            this->selectedIndex = index;
+            break;
+        }
+    }
+   
     ScreenManager::getInstance()->setDirtyFlag(true);
 }
+
 
 void UIScreen::onButtonPress(uint8_t button){
     if(!visible){return;}

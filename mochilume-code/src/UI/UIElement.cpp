@@ -45,13 +45,27 @@ UIElement* UIElement::getChild(std::string id){return this->children[id];}
 void UIElement::addChild(UIElement* child){
     if(this->children[child->id] == nullptr){
         child->setParent(this);
+        child->index = this->children.size();
         this->children[child->id] = child;
         ScreenManager::getInstance()->setDirtyFlag(true);
     }
 }
 
-void UIElement::setSelectedChild(UIElement* child){
-    this->selectedChild = child;
+void UIElement::setSelectedIndex(uint8_t index){
+    if(index > this->children.size()){index = 0;}
+    if(index < 0){index = this->children.size();}
+    if(this->selectedChild)this->selectedChild->setState(UIState::BASE);
+    
+    this->selectedChild = nullptr;
+    for (std::pair<std::string, UIElement *> c : this->children){
+        if(c.second->index == index){
+            this->selectedChild = c.second;
+            this->selectedChild->setState(UIState::HOVERED);
+            this->selectedIndex = index;
+            break;
+        }
+    }
+   
     ScreenManager::getInstance()->setDirtyFlag(true);
 }
 

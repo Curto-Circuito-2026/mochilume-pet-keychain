@@ -11,6 +11,7 @@ private:
     std::unordered_map<std::string, UIElement*> elements;
     bool visible;
     UIElement* selectedElement;
+    uint8_t selectedIndex;
 public:
     UIScreen();
     ~UIScreen();
@@ -20,9 +21,9 @@ public:
     UIElement* getChild(std::string id);
     void addChild(UIElement* child);
 
-    void setVisibility(bool visible);
+    void setSelectedIndex(uint8_t index);
 
-    void setSelectedElement(UIElement* element);
+    void setVisibility(bool visible);
 
     void render(Adafruit_GFX* tft, int stripOffset = 0);
 };

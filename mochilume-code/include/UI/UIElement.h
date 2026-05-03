@@ -1,7 +1,7 @@
 #ifndef UIElement_H
 #define UIElement_H
 
-#include <unordered_map>
+#include <map>
 #include <string>
 #include <Adafruit_GC9A01A.h>
 
@@ -30,7 +30,7 @@ private:
     String text;
     UIElement* parent;
     UIScreen* screen;
-    std::unordered_map<std::string, UIElement*> children;
+    std::map<std::string, UIElement*> children;
 
     int16_t x,y;
     bool visible;
@@ -38,12 +38,16 @@ private:
     UIStyle hoverStyle;
     UIStyle selectedStyle;
 
+    uint8_t selectedIndex;
+
     UIState state;
     UIElement* selectedChild;
+    
 
-    std::unordered_map<uint8_t, std::function<void(UIElement*)>> actions;
+    std::map<uint8_t, std::function<void(UIElement*)>> actions;
 public:
     std::string id;
+    uint8_t index;
     UIElement(std::string id, int16_t x, int16_t y, UIStyle style, UIStyle hoverStyle, UIStyle selectedStyle);
     ~UIElement();
 
@@ -52,7 +56,7 @@ public:
 
     UIScreen* getScreen();
 
-    void setSelectedChild(UIElement* child);
+    void setSelectedIndex(uint8_t index);
 
     void setParent(UIElement* parent);
     void setScreen(UIScreen* screen);
