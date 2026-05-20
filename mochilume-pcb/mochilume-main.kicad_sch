@@ -3492,30 +3492,6 @@
 			)
 		)
 	)
-	(global_label "TFT_CS"
-		(shape input)
-		(at 40.64 67.31 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "6abbd696-b036-4452-8788-5fefa135ce02")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 31.1839 67.31 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-	)
 	(global_label "SW_3"
 		(shape input)
 		(at 72.39 67.31 0)
@@ -3553,6 +3529,30 @@
 		(uuid "72600fb2-9a11-4f97-a8e5-f56f6203536a")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 105.0253 96.52 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+	)
+	(global_label "TFT_CS"
+		(shape input)
+		(at 41.91 67.31 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "755196a7-cd56-4581-8cef-0c871807b5b2")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 32.4539 67.31 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
