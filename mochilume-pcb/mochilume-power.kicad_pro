@@ -39,9 +39,9 @@
         "other_text_thickness": 0.15,
         "other_text_upright": false,
         "pads": {
-          "drill": 0.01,
-          "height": 0.01,
-          "width": 0.01
+          "drill": 1.54,
+          "height": 2.8,
+          "width": 2.8
         },
         "silk_line_width": 0.1,
         "silk_text_italic": false,
@@ -50,7 +50,23 @@
         "silk_text_thickness": 0.1,
         "silk_text_upright": false,
         "zones": {
-          "min_clearance": 0.0
+          "border_display_style": 2,
+          "border_hatch_pitch": 0.5,
+          "corner_radius": 0.0,
+          "corner_smoothing": 0,
+          "fill_mode": 0,
+          "hatch_gap": 1.5,
+          "hatch_orientation": 0.0,
+          "hatch_smoothing_level": 0,
+          "hatch_smoothing_value": 0.1,
+          "hatch_thickness": 1.0,
+          "min_clearance": 0.0,
+          "min_island_area": 10.0,
+          "min_thickness": 0.25,
+          "pad_connection": 1,
+          "remove_islands": 0,
+          "thermal_relief_gap": 0.5,
+          "thermal_relief_spoke_width": 0.5
         }
       },
       "diff_pair_dimensions": [
@@ -556,7 +572,7 @@
     "last_paths": {
       "gencad": "",
       "idf": "",
-      "netlist": "mochilume-pcb.net",
+      "netlist": "mochilume-power.net",
       "plot": "",
       "pos_files": "",
       "specctra_dsn": "mochilume-pcb.dsn",
@@ -692,7 +708,7 @@
         "uuid": "6764fa8e-f873-49cf-a9f0-daca6a1db35f"
       }
     ],
-    "used_designators": "U1-2,J1-2,OUT_BORNE1",
+    "used_designators": "",
     "variants": []
   },
   "sheets": [
