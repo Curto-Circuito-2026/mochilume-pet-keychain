@@ -18,12 +18,12 @@
 
 // --- BUTTONS ---
 //definir pinos reais
-#define BTN_UP       39
-#define BTN_DOWN     38
-#define BTN_LEFT     37
-#define BTN_RIGHT    36
-#define BTN_A        35
-#define BTN_B        34
+#define BTN_UP      26    
+#define BTN_DOWN    25    
+#define BTN_LEFT    35    
+#define BTN_RIGHT   27    
+#define BTN_A       16   
+#define BTN_B       17     
 
 // --- SYSTEM SETTINGS ---
 #define TARGET_FPS   60

@@ -17,7 +17,7 @@ private:
 public:
     static ScreenManager* getInstance();
     void changeScreen(UIScreen* screen);
-
+    UIScreen* getCurScreen();
     void setDirtyFlag(bool dirty);
 
     void onButtonPress(uint8_t button);

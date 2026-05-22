@@ -1,6 +1,8 @@
 #include "InputManager.h"
 #include "HalConfig.h"
 
+uint8_t buttons[] = {BTN_UP, BTN_DOWN, BTN_LEFT, BTN_RIGHT, BTN_A, BTN_B};
+
 InputManager* InputManager::_instance = nullptr;
 
 InputManager::InputManager() {}
@@ -11,7 +13,6 @@ InputManager* InputManager::getInstance() {
 }
 
 bool InputManager::begin() {
-    uint8_t buttons[] = {BTN_UP, BTN_DOWN, BTN_LEFT, BTN_RIGHT, BTN_A, BTN_B};
     for(uint8_t btn : buttons) {
         // oq tava escrito aqui era mentira!!!!!
         // coloque resistor de 10k nos seus botoes
@@ -30,13 +31,24 @@ bool InputManager::begin() {
     return true;
 }
 
+
 void InputManager::update() {
-    _btnStates[0] = !digitalRead(BTN_UP);
-    _btnStates[1] = !digitalRead(BTN_DOWN);
-    _btnStates[2] = !digitalRead(BTN_LEFT);
-    _btnStates[3] = !digitalRead(BTN_RIGHT);
-    _btnStates[4] = !digitalRead(BTN_A);
-    _btnStates[5] = !digitalRead(BTN_B);
+    _btnStates[0] = digitalRead(BTN_UP);
+    _btnStates[1] = digitalRead(BTN_DOWN);
+    _btnStates[2] = digitalRead(BTN_LEFT);
+    _btnStates[3] = digitalRead(BTN_RIGHT);
+    _btnStates[4] = digitalRead(BTN_A);
+    _btnStates[5] = digitalRead(BTN_B);
+
+    for (int i = 0; i < 6; i++)
+    {
+        if(_btnStates[i] == true){
+            bool found = (std::find(this->inputQueue.begin(), this->inputQueue.end(), buttons[i]) != this->inputQueue.end());
+            if(!found){this->inputQueue.push_back(buttons[i]); }
+        }
+    }
+    
+    
 
     // 2. Leitura da IMU
     sensors_event_t a, g, temp;
@@ -55,5 +67,5 @@ void InputManager::update() {
 }
 
 bool InputManager::isPressed(uint8_t pin) {
-    return !digitalRead(pin);
+    return digitalRead(pin);
 }

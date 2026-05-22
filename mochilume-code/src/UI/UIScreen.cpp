@@ -6,6 +6,8 @@
 
 UIScreen::UIScreen(){
     this->selectedElement = nullptr;
+    this->selectedIndex = 0;
+    this->visible = true;
 }
 UIScreen::~UIScreen(){
     for (std::pair<std::string, UIElement *> c : this->elements){delete c.second;}
@@ -19,7 +21,7 @@ void UIScreen::addChild(UIElement* child){
     if(this->elements[child->id] == nullptr){
         child->setScreen(this);
         this->elements[child->id] = child;
-        child->index = this->elements.size();
+        child->index = this->elements.size() - 1;
         ScreenManager::getInstance()->setDirtyFlag(true);
     }
 }
@@ -37,6 +39,9 @@ void UIScreen::setSelectedIndex(uint8_t index){
     
     this->selectedElement = nullptr;
     for (std::pair<std::string, UIElement *> c : this->elements){
+        Serial.print("ElIndice: ");
+        Serial.print(c.second->index);
+        Serial.print("\n");
         if(c.second->index == index){
             this->selectedElement = c.second;
             this->selectedElement->setState(UIState::HOVERED);
@@ -45,12 +50,18 @@ void UIScreen::setSelectedIndex(uint8_t index){
         }
     }
    
+    Serial.print("Indice: ");
+    Serial.print(this->selectedIndex);
+    Serial.print("\n");
+
     ScreenManager::getInstance()->setDirtyFlag(true);
 }
 
 
 void UIScreen::onButtonPress(uint8_t button){
     if(!visible){return;}
+    if(selectedElement){Serial.println(selectedElement->index);}
+    else{Serial.println("semelemento");}
     if(selectedElement){selectedElement->onButtonPress(button); return;}
 }
 
