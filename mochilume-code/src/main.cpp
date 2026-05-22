@@ -4,6 +4,10 @@
 #include "ActivityManager.h"
 #include "InputManager.h"
 #include "Test.h"
+#include "Activities/Menu.h"
+#include "Activities/Config.h"
+#include "Activities/Mochilume.h"
+
 
 DisplayManager* display;
 ScreenManager* screen;
@@ -11,6 +15,9 @@ ActivityManager* activity;
 InputManager* input;
 
 Test* testActivity = nullptr;
+Menu* menuActivity = nullptr;
+// Config* configActivity = nullptr;
+Mochilume* mochilumeActivity = nullptr;
 
 void setup() {
     Serial.begin(115200);
@@ -36,10 +43,22 @@ void setup() {
 
     testActivity = new Test();
     activity->registerActivity(testActivity);
-    activity->setActivity("test");
+
+    // configActivity = new Config();
+    // activity->registerActivity(configActivity);
+
+    mochilumeActivity = new Mochilume();
+    activity->registerActivity(mochilumeActivity);
+
+    menuActivity = new Menu();
+    activity->registerActivity(menuActivity);
+    
+    activity->setActivity("mochilume");
+
     Serial.println("Mochilume OS: Setup Finalizado.");
 }
 
 void loop() {
+    input->update();
     activity->loopActivity();
 }
