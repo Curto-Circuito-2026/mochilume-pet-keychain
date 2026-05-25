@@ -1,0 +1,13 @@
+{
+    "level":1,
+    "xp":0,
+    "name":"teste",
+    "baseHP":0,
+    "baseDEF":0,
+    "baseSPD":0,
+    "baseATK":0,
+    "skills":[],
+    "skillpool":[],
+    "skillpoolsize":0,
+    "species":1
+}

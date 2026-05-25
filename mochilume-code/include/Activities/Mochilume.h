@@ -3,6 +3,7 @@
 #include "Activity.h"
 #include <Adafruit_GC9A01A.h>
 
+
 enum StatType {
     DEF,
     SPD,
@@ -15,28 +16,32 @@ enum SkillTarget {
 };
 
 struct MochilumeSkill {
+    String name;
     SkillTarget target;
     StatType stat;
     int value;
 };
 
 struct PetData {
+    String name;
     int initialHP;
     int initialDEF;
-    int initalSPD;
+    int initialSPD;
     int initialATK;
 
-    //skills disponiveis por level
-    std::map<int, std::vector<MochilumeSkill>> skillPool;
+    //id das skills disponiveis por level
+    std::map<int, std::vector<int>> skillPool;
 
     const uint8_t* sprite;
 
-    String evolutionSpecies;
+    int evolutionSpecies;
     int evolutionLevel;
 };
 
 //mapa de infos base do pet por id da especie
-extern std::map<String, PetData> petInfoMap; 
+extern std::map<int, PetData> petInfoMap; 
+//mapa de skills por id
+extern std::map<int, MochilumeSkill> allSkills;
 
 class MochilumePet {
     public:
@@ -49,20 +54,38 @@ class MochilumePet {
         int curSPD;
         int curATK;
 
-        MochilumeSkill skills[4];
-    private: 
-        String species;
+        //id das skills
+        int skills[4];
 
-        //adiciona do petData cada levelUP e no evolve.
-        std::vector<MochilumeSkill> skillPool;
+        std::vector<int> getSkillPool();
+
+        void setData(int species, int level, int xp, String name, int baseHP, int baseDEF, int baseSPD, int baseATK, int skills[4], std::vector<int> skillPoll);
+
+        //atualizar no save
+        void changeName(String val);
+        void changeSkill(int index, int val);
+
+        //usar em batalha
+        void changeCurHP(int addr);
+        void changeCurDEF(int addr);
+        void changeCurSPD(int addr);
+        void changeCurATK(int addr);
+
+    private: 
+        int species;
+
+        //adiciona id da skil do petData cada levelUP e no evolve.
+        std::vector<int> skillPool;
 
         int baseHP;
         int baseDEF;
         int baseSPD;
         int baseATK;
 
+        void updateSave();
+        
+        //muda atributos base e skill pool. atualizar no save
         void levelUp();
-        void evolve();
 
 };
 
@@ -72,6 +95,25 @@ private:
     UIScreen* stats;
     UIScreen* battleSelect;
     UIScreen* battle;
+
+    MochilumePet* pet;
+
+    bool isBattleHost; //true -> Ativo, calcula as batalhas. false -> passivo, espera receber o resultado
+    int battleState; //0 -> selecionar skills : 1 -> rodando resultado das seleções
+
+
+    void loadPetData();
+
+    void createHomeScreen();
+    void createStatsScreen();
+    void createBattleSelectionScreen();
+    void createBattleScreen();
+
+    
+    void battleSelectionLoop();
+    void statsLoop();
+    void homeLoop();
+    void battleLoop();
 public:
     Mochilume();
 
