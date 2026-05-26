@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <future>
+#include <vector>
 
 #define CONNECTION_TIMEOUT 10000
 

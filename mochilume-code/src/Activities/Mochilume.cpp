@@ -39,6 +39,16 @@ UIStyle squareStyle = {
     1
 };
   
+
+std::map<int, PetData> petInfoMap = {
+  {1, {"test", 0, 0, 0, 0, {{0, {0,1}}}, 0, -1, -1}}  
+};
+
+std::map<int, MochilumeSkill> allSkills = {
+    {0, {"test", SkillTarget::OTHER, StatType::HP, 10}},
+    {1, {"test2", SkillTarget::OTHER, StatType::HP, 10}}
+};
+
 void MochilumePet::setData(int species, int level, int xp, String name, int baseHP, int baseDEF, int baseSPD, int baseATK, int skills[4], std::vector<int> skillPoll){
     this->species = species;
     
@@ -99,7 +109,7 @@ void MochilumePet::updateSave(){
     File file = LittleFS.open(String("/mochilume") + "/" + "pets.json", "w");
     if (!file) return;
 
-    StaticJsonDocument<512> doc;
+    JsonDocument doc;
     doc["species"] = this->species;
     doc["level"] = this->level;
     doc["xp"] = this->xp;
@@ -108,8 +118,17 @@ void MochilumePet::updateSave(){
     doc["baseDEF"] = this->baseDEF;
     doc["baseSPD"] = this->baseSPD;
     doc["baseATK"] = this->baseATK;
-    doc["skills"] = this->skills;
-    doc["skillpool"] = this->skillPool;
+
+    JsonArray skillsArr = doc["skills"].to<JsonArray>();
+    for (int i = 0; i < 4; i++) {
+        skillsArr.add(this->skills[i]);
+    }
+
+    JsonArray poolArr = doc["skillpool"].to<JsonArray>();
+    for (int s : this->skillPool) {
+        poolArr.add(s);
+    }
+
     doc["skillpoolsize"] = this->skillPool.size();
 
     serializeJson(doc, file);
@@ -352,7 +371,7 @@ void Mochilume::loadPetData(){
     else{
         std::random_device rd; 
         std::mt19937 gen(rd()); 
-        std::uniform_int_distribution<> distr(1, petInfoMap.size()+1); 
+        std::uniform_int_distribution<> distr(1, petInfoMap.size()); 
         species = distr(gen);
         PetData d = petInfoMap[species];
         level = 1;
