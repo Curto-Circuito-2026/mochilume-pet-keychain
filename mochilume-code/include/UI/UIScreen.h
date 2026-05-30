@@ -1,0 +1,33 @@
+#ifndef UIScreen_H
+#define UIScreen_H
+
+#include <unordered_map>
+#include <string>
+#include <Adafruit_GC9A01A.h>
+#include "UIElement.h"
+
+class UIScreen {
+private:
+    std::unordered_map<std::string, UIElement*> elements;
+    bool visible;
+    UIElement* selectedElement;
+    uint8_t selectedIndex;
+public:
+    UIScreen();
+    ~UIScreen();
+
+    void onButtonPress(uint8_t button);
+
+    UIElement* getChild(std::string id);
+    void addChild(UIElement* child);
+
+    void setSelectedIndex(uint8_t index);
+
+    void setVisibility(bool visible);
+
+    void render(Adafruit_GFX* tft, int stripOffset = 0);
+};
+
+
+
+#endif

@@ -11,9 +11,11 @@ SaveManager* SaveManager::getInstance() {
 
 //CHECK ARQUIVOS CORROMPIDOS
 bool SaveManager::begin() {
+
     if (!LittleFS.begin(true)) { 
         Serial.println("Erro ao montar LittleFS");
         return false;
     }
+
     return true;
 }

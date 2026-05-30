@@ -6,15 +6,10 @@
 
 class Test : public Activity {
 private:
-    SimpleUIList* mainMenu;
-    SimpleUIList* configMenu;
-    bool lastBtnA = false;
-    bool lastBtnB = false;
-    
-    static void onConfig();
-    static void onPlay();
-    static void onAudioConfig();
-    static void onBack();
+    float y;
+    int16_t squareSize;
+    UIElement* square;
+    UIElement* square2;
 
 public:
     Test();

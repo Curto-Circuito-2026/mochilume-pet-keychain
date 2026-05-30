@@ -5,11 +5,14 @@
 #include <Adafruit_MPU6050.h>
 #include <Adafruit_Sensor.h>
 #include "HalConfig.h"
+#include <queue>
 
 struct MPUData {
     float accX, accY, accZ;
     float gyroX, gyroY, gyroZ;
 };
+
+extern uint8_t buttons[];
 
 class InputManager {
 private:
@@ -25,6 +28,8 @@ public:
 
     bool begin();
     void update();
+
+    std::deque<int> inputQueue;
 
     bool isPressed(uint8_t pin);
     MPUData getIMU() { return _mpuData; }

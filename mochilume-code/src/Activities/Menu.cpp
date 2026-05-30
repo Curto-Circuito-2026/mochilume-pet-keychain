@@ -1,29 +1,12 @@
-#include "Test.h"
+#include "Activities/Menu.h"
 #include <DisplayManager.h>
-#include "InputManager.h"
-#include "UISystem.h"
-#include "ActivityManager.h"
-#include "HalConfig.h"
-#include <Arduino.h>
 
-void Test::onConfig() {
-}
 
-void Test::onPlay() {
-}
-
-void Test::onAudioConfig() {
-}
-
-void Test::onBack() {
-}
-
-Test::Test() 
-    : Activity("test", nullptr), mainMenu(nullptr), configMenu(nullptr), lastBtnA(false), lastBtnB(false) {}
-
-void Test::setup() {
-    y = 0;
-    squareSize = 60;
+Menu::Menu() 
+    : Activity("menu", nullptr) {}
+void Menu::setup() {
+    int y = 0;
+    int squareSize = 60;
 
     UIStyle squareStyle = {
         squareSize, 
@@ -39,7 +22,7 @@ void Test::setup() {
 
     UIScreen* screen1 = new UIScreen();
     
-    square = new UIElement(
+    UIElement* square = new UIElement(
         "square", 
         90, 
         y, 
@@ -49,7 +32,7 @@ void Test::setup() {
     
     screen1->addChild(square);
 
-    square2 = new UIElement(
+    UIElement* square2 = new UIElement(
         "square2", 
         90, 
         y, 
@@ -60,22 +43,15 @@ void Test::setup() {
     screen1->addChild(square2);
     _screen->changeScreen(screen1);
 }
-
-void Test::loop() {
-    y += 5.0f; 
-    if (y >= SCREEN_HEIGHT + squareSize) y = -squareSize;
-
-    square->setPosition(90, y);
+void Menu::loop() {
 
     _screen->render();
     
     delay(FRAME_DELAY);
 }
-
-void Test::stop() {
+void Menu::stop() {
     for (std::pair<std::string, UIScreen *> c : this->screens){delete c.second;}
     this->screens.clear();
     
     Serial.println("stop");
 }
-
