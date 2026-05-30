@@ -5,12 +5,21 @@
 #include "UI/ScreenManager.h"
 #include "InputManager.h"
 
+class ActivityManager;
+class UISystem;
+class UIList;
+
 class Activity {
     protected:
+        DisplayManager* _display = nullptr;
+        ActivityManager* _activityManager = nullptr;
+        UISystem* _uiSystem = nullptr;
         Adafruit_GC9A01A* _tft = DisplayManager::getInstance()->getTFT();
         ScreenManager* _screen = ScreenManager::getInstance();
         InputManager* _input = InputManager::getInstance();
         std::unordered_map<std::string, UIScreen*> screens;
+
+        void initUISystem();
     public: 
         const char* name;
         const uint8_t* icon;

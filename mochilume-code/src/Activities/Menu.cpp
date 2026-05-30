@@ -6,7 +6,7 @@ Menu::Menu()
     : Activity("menu", nullptr) {}
 void Menu::setup() {
     int y = 0;
-    int squareSize = 60;
+    int16_t squareSize = 60;
 
     UIStyle squareStyle = {
         squareSize, 
