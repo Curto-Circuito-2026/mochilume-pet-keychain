@@ -44,4 +44,8 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// Health Check Endpoint
+app.MapGet("/health", () => Results.Ok(new { Status = "Healthy", Message = "A API mochilume está online e funcionando!" }))
+    .WithName("GetHealth");
+
 app.Run();
