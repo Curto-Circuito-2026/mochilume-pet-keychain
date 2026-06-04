@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using mochilume_api.Data;
+using mochilume_api.Middlewares;
 using mochilume_api.Repositories;
 using mochilume_api.Repositories.Interfaces;
 using mochilume_api.Services;
@@ -30,6 +31,9 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+
+// Adicionando o Middleware Global de Exceções
+app.UseMiddleware<ExceptionMiddleware>();
 
 // Configure the HTTP request pipeline.
 //if (app.Environment.IsDevelopment())
