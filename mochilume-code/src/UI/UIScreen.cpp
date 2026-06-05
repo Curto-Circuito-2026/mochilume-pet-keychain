@@ -1,10 +1,13 @@
 #include "UI/UIScreen.h"
 #include <HalConfig.h>
 #include <UI/ScreenManager.h>
+#include <vector>
 
 
 
 UIScreen::UIScreen(){
+    this->backgroundColor = GC9A01A_BLACK;
+    this->backgroundImage = nullptr;
     this->selectedElement = nullptr;
     this->selectedIndex = 0;
     this->visible = true;
@@ -33,18 +36,36 @@ void UIScreen::setVisibility(bool visible){
 }
 
 void UIScreen::setSelectedIndex(uint8_t index){
-    if(index > this->elements.size()){index = 0;}
+     if(index == -1){
+        if(this->selectedElement){
+            this->selectedElement->setState(UIState::BASE);
+            this->selectedElement->setSelectedIndex(-1);
+        }
+        this->selectedElement = nullptr;
+        this->selectedIndex = index;
+        ScreenManager::getInstance()->setDirtyFlag(true);
+        return;
+    }
+
+    if(index >= this->elements.size()){index = 0;}
     if(index < 0){index = this->elements.size();}
-    if(this->selectedElement)this->selectedElement->setState(UIState::BASE);
+    if(this->selectedElement){this->selectedElement->setState(UIState::BASE);this->selectedElement->setSelectedIndex(-1);}
     
     this->selectedElement = nullptr;
     for (std::pair<std::string, UIElement *> c : this->elements){
-        Serial.print("ElIndice: ");
-        Serial.print(c.second->index);
-        Serial.print("\n");
         if(c.second->index == index){
+           if(c.second->getDisabled() || !c.second->getVisibility()){
+                if(index > this->selectedIndex){
+                    setSelectedIndex(index + 1);
+                    return;
+                }else{
+                    setSelectedIndex(index - 1);
+                    return;
+                }
+            }
             this->selectedElement = c.second;
             this->selectedElement->setState(UIState::HOVERED);
+            this->selectedElement->setSelectedIndex(0);
             this->selectedIndex = index;
             break;
         }
@@ -59,14 +80,45 @@ void UIScreen::setSelectedIndex(uint8_t index){
 
 
 void UIScreen::onButtonPress(uint8_t button){
+    Serial.print("BOTÃO: ");
+    Serial.print(button);
+    Serial.print(" EM SCREEN\n");
+
     if(!visible){return;}
-    if(selectedElement){Serial.println(selectedElement->index);}
-    else{Serial.println("semelemento");}
-    if(selectedElement){selectedElement->onButtonPress(button); return;}
+
+    if(selectedElement){
+        Serial.print("ELEMENTO SELECIONADO: ");
+        Serial.print(selectedElement->index);
+        Serial.print(" | ");
+        Serial.print(selectedElement->id.c_str());
+        Serial.print("\n");
+
+        bool did = selectedElement->onButtonPress(button); 
+        if(did) return;
+    }
+    else{
+        Serial.println("SEM ELEMENTO SELECIONADO");
+    }
+
+    if(button == BTN_RIGHT){setSelectedIndex(this->selectedIndex + 1);}
+    if(button == BTN_LEFT){setSelectedIndex(this->selectedIndex - 1);}
 }
 
 void UIScreen::render(Adafruit_GFX* tft, int stripOffset){
     if(!visible){return;}
-    for (std::pair<std::string, UIElement *> c : this->elements){c.second->render(tft, stripOffset);}
+
+    std::vector<std::pair<std::string, UIElement *>> pairs(this->elements.begin(), this->elements.end());
+
+    std::sort(pairs.begin(), pairs.end(), [](const std::pair<std::string, UIElement *>& a, const std::pair<std::string, UIElement *>& b) {
+        return a.second->getStyle().z < b.second->getStyle().z; 
+    });
+
+    for (const std::pair<std::string, UIElement *>& p : pairs) {
+        p.second->render(tft, stripOffset);
+    }
+
+    // for (std::pair<std::string, UIElement *> c : this->elements){
+    //     c.second->render(tft, stripOffset);
+    // }
 
 }

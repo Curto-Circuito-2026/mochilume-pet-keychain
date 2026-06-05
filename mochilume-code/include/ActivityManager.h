@@ -18,6 +18,7 @@ public:
     Activity* curActivity;
     void setActivity(const char* name);
     void loopActivity();
+    std::vector<Activity*> getActivities();
     void registerActivity(Activity* activity);
 };
 

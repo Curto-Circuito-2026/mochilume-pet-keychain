@@ -53,7 +53,7 @@ void setup() {
     menuActivity = new Menu();
     activity->registerActivity(menuActivity);
     
-    activity->setActivity("mochilume");
+    activity->setActivity("menu");
 
     Serial.println("Mochilume OS: Setup Finalizado.");
 }

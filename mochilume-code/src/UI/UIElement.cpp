@@ -1,6 +1,7 @@
 #include "UI/UIElement.h"
 #include <HalConfig.h>
 #include <UI/ScreenManager.h>
+#include <vector>
 
 
 
@@ -14,15 +15,28 @@ UIElement::UIElement(std::string id, int16_t x, int16_t y, UIStyle style, UIStyl
     this->parent = nullptr;
     this->screen = nullptr;
     this->state = UIState::BASE;
+    this->selectedIndex = 0;
     this->selectedChild = nullptr;
     this->hoverStyle = hoverStyle;
     this->selectedStyle = selectedStyle;
+    this->disabled = false;
+    this->wrapIndex = true;
 }
 UIElement::~UIElement(){
     for (std::pair<std::string, UIElement *> c : this->children){delete c.second;}
     this->children.clear();
     ScreenManager::getInstance()->setDirtyFlag(true);
 }
+
+void UIElement::setDisabled(bool disabled){
+    this->disabled = disabled;
+    ScreenManager::getInstance()->setDirtyFlag(true);
+}
+bool UIElement::getDisabled(){
+    return this->disabled;
+}
+
+
 
 void UIElement::setText(String text){
     this->text = text;
@@ -45,27 +59,76 @@ UIElement* UIElement::getChild(std::string id){return this->children[id];}
 void UIElement::addChild(UIElement* child){
     if(this->children[child->id] == nullptr){
         child->setParent(this);
-        child->index = this->children.size();
         this->children[child->id] = child;
+        child->index = this->children.size() - 1;
         ScreenManager::getInstance()->setDirtyFlag(true);
     }
 }
 
+bool UIElement::getVisibility(){
+    return this->visible;
+}
+
+String UIElement::getText(){
+    return this->text;
+}
+
 void UIElement::setSelectedIndex(uint8_t index){
-    if(index > this->children.size()){index = 0;}
-    if(index < 0){index = this->children.size();}
-    if(this->selectedChild)this->selectedChild->setState(UIState::BASE);
+    if(this->children.size() == 0){return;}
+    Serial.print("INDICE ESCOLHIDO: ");
+    Serial.print(index);
+    Serial.print(" | CHILDRENSIZE: ");
+    Serial.print(this->children.size());
+    Serial.print(" | INDICE ATUAL: ");
+    Serial.print(this->selectedIndex);
+    Serial.print("\n");
+
+    if(index == -1){
+        if(this->selectedChild){
+            this->selectedChild->setState(UIState::BASE);
+            this->selectedChild->setSelectedIndex(-1);
+        }
+        this->selectedChild = nullptr;
+        this->selectedIndex = index;
+        ScreenManager::getInstance()->setDirtyFlag(true);
+        return;
+    }
+
+
+    if(index >= this->children.size()){if(wrapIndex) index = 0; else index = this->children.size();}
+    if(index < 0){if(wrapIndex) index = index = this->children.size(); else index = 0;}
+    if(this->selectedChild){this->selectedChild->setState(UIState::BASE);this->selectedChild->setSelectedIndex(-1);}
+
     
+    Serial.print("INDICE TRATADO: ");
+    Serial.print(index);
+    Serial.print("\n");
+
     this->selectedChild = nullptr;
     for (std::pair<std::string, UIElement *> c : this->children){
         if(c.second->index == index){
+            if(c.second->getDisabled() || !c.second->getVisibility()){
+                if(index > this->selectedIndex){
+                    setSelectedIndex(index + 1);
+                    return;
+                }else{
+                    setSelectedIndex(index - 1);
+                    return;
+                }
+            }
             this->selectedChild = c.second;
             this->selectedChild->setState(UIState::HOVERED);
+            this->selectedChild->setSelectedIndex(0);
             this->selectedIndex = index;
             break;
         }
     }
-   
+
+    if(this->selectedChild != nullptr){
+        Serial.print("FILHO ATUAL: ");
+        Serial.println(this->selectedChild->id.c_str());
+    }
+
     ScreenManager::getInstance()->setDirtyFlag(true);
 }
 
@@ -108,14 +171,24 @@ UIStyle UIElement::getStyle(){
     return this->style;
 }
 
-void UIElement::onButtonPress(uint8_t button){
-    if(!visible){return;}
-    if(selectedChild){selectedChild->onButtonPress(button); return;}
+bool UIElement::onButtonPress(uint8_t button){
+    Serial.print("BOTÃO: ");
+    Serial.print(button);
+    Serial.print(" EM ELEMENTO: ");
+    Serial.print(this->id.c_str());
+    Serial.print("\n");
 
+    if(!visible){return false;}
+    if(selectedChild){
+        bool did = selectedChild->onButtonPress(button); 
+        if(did) return true;
+    }
 
     if(this->actions[button]){
         this->actions[button](this);
+        return true;
     }
+    return false;
 }
 
 void UIElement::render(Adafruit_GFX* tft, int stripOffset){
@@ -128,14 +201,40 @@ void UIElement::render(Adafruit_GFX* tft, int stripOffset){
        renderX += this->parent->x + this->parent->getStyle().offsetX + this->parent->getStyle().paddingX;
        renderY += this->parent->y + this->parent->getStyle().offsetY + this->parent->getStyle().paddingY;
     }
-    tft->fillRect(renderX, renderY, s.width, s.height, s.color);
-    if(s.sprite)tft->drawRGBBitmap(renderX, renderY, s.sprite, s.width, s.height);
+    if(!s.noFill){tft->fillRoundRect(renderX, renderY, s.width, s.height, s.borderRadius, s.color);}
+    if(s.sprite){
+        if(s.sprite->mask != nullptr){tft->drawRGBBitmap(renderX, renderY, s.sprite->sprite, s.sprite->mask, s.width, s.height);}
+        else{tft->drawRGBBitmap(renderX, renderY, s.sprite->sprite, s.width, s.height);}
+    }
     if(this->text.length() > 0){
         tft->setTextSize(s.textSize);
         tft->setTextColor(s.textColor);
         tft->setCursor(renderX + s.paddingX, renderY + s.paddingY);
+
+        if(s.textAlign == TextAlign::CENTER){
+            int16_t x1, y1;
+            uint16_t w, h;
+            tft->getTextBounds(this->text, 0, 0, &x1, &y1, &w, &h);
+            int16_t tx = renderX + (s.width  - w) / 2 - x1;
+            tft->setCursor(tx, renderY + s.paddingY);
+        }
+        if(s.textAlign == TextAlign::RIGHT){
+            tft->setCursor(s.width - s.paddingX, renderY + s.paddingY);
+        }
+
         tft->print(this->text);
     }
 
-    for (std::pair<std::string, UIElement *> c : this->children){c.second->render(tft, stripOffset);}
+
+    std::vector<std::pair<std::string, UIElement *>> pairs(this->children.begin(), this->children.end());
+
+    std::sort(pairs.begin(), pairs.end(), [](const std::pair<std::string, UIElement *>& a, const std::pair<std::string, UIElement *>& b) {
+        return a.second->getStyle().z < b.second->getStyle().z; 
+    });
+
+    for (const std::pair<std::string, UIElement *>& p : pairs) {
+        p.second->render(tft, stripOffset);
+    }
+
+    // for (std::pair<std::string, UIElement *> c : this->children){c.second->render(tft, stripOffset);}
 }
