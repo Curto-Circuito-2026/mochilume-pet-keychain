@@ -1,0 +1,150 @@
+#include "Requests.h"
+#include <ArduinoJson.h>
+#include "WifiManager.h"
+#include "HalConfig.h"
+
+bool Requests::WaitForResponse(String& outResponse, bool& finishedFlag) {
+    unsigned long startAttempt = millis();
+    while (!finishedFlag) {
+        delay(10); 
+        if (millis() - startAttempt > CONNECTION_TIMEOUT) {
+            Serial.println("[Requests] Erro: Timeout na resposta do servidor.");
+            return false;
+        }
+    }
+    return true;
+}
+
+bool Requests::RegisterPlayer(const PlayerAuthDto& authData) {
+    WifiManager* wm = WifiManager::getInstance();
+    if (!wm->isConnected) {
+        Serial.println("[Requests] Sem conexao Wi-Fi para registrar.");
+        return false;
+    }
+
+    StaticJsonDocument<128> doc;
+    doc["userName"] = authData.userName;
+    doc["password"] = authData.password;
+    
+    String payload;
+    serializeJson(doc, payload);
+
+    String response = "";
+    bool finished = false;
+
+    Serial.println("[Requests] Enviando POST Register...");
+    if (!wm->Fetch(AUTH_REGISTER_ENDPOINT, POST, payload, response, finished)) return false;
+    if (!WaitForResponse(response, finished)) return false;
+
+    Serial.print("[Requests] Resposta Register: ");
+    Serial.println(response.c_str());
+    return true;
+}
+
+// 2. LOGIN
+bool Requests::LoginPlayer(const PlayerAuthDto& authData) {
+    WifiManager* wm = WifiManager::getInstance();
+    if (!wm->isConnected) return false;
+
+    StaticJsonDocument<128> doc;
+    doc["userName"] = authData.userName;
+    doc["password"] = authData.password;
+    
+    String payload;
+    serializeJson(doc, payload);
+
+    String response = "";
+    bool finished = false;
+
+    Serial.println("[Requests] Enviando POST Login...");
+    if (!wm->Fetch(AUTH_LOGIN_ENDPOINT, POST, payload, response, finished)) return false;
+    if (!WaitForResponse(response, finished)) return false;
+
+    Serial.print("[Requests] Resposta Login: ");
+    Serial.println(response.c_str());
+    return true; 
+}
+
+// 3. SAVE UPLOAD
+bool Requests::UploadSave(const PlayerDataDto& saveData) {
+    WifiManager* wm = WifiManager::getInstance();
+    if (!wm->isConnected) return false;
+
+    DynamicJsonDocument doc(2048); 
+    doc["id"] = saveData.id;
+    doc["userName"] = saveData.userName;
+    doc["steps"] = saveData.steps;
+
+    JsonArray petsArray = doc.createNestedArray("pets");
+    for (int i = 0; i < saveData.petsCount; i++) {
+        JsonObject petObj = petsArray.createNestedObject();
+        petObj["id"] = saveData.pets[i].id;
+        petObj["name"] = saveData.pets[i].name;
+        petObj["level"] = saveData.pets[i].level;
+        petObj["xp"] = saveData.pets[i].xp;
+        petObj["species"] = saveData.pets[i].species;
+        petObj["isActive"] = saveData.pets[i].isActive;
+    }
+
+    String payload;
+    serializeJson(doc, payload);
+
+    String response = "";
+    bool finished = false;
+
+    Serial.println("[Requests] Enviando POST Save Upload...");
+    if (!wm->Fetch(SAVE_UPLOAD_ENDPOINT, POST, payload, response, finished)) return false;
+    if (!WaitForResponse(response, finished)) return false;
+
+    return true;
+}
+
+// 4. SAVE DOWNLOAD
+bool Requests::DownloadSave(const char* username, PlayerDataDto& outSaveData) {
+    WifiManager* wm = WifiManager::getInstance();
+    if (!wm->isConnected) return false;
+
+    char fullUrl[256];
+    snprintf(fullUrl, sizeof(fullUrl), "%s%s%s", SAVE_DOWNLOAD_BASE_URL, username, SAVE_DOWNLOAD_SUFFIX);
+
+    String response = "";
+    bool finished = false;
+
+    Serial.printf("[Requests] Enviando GET Save Download para %s...\n", username);
+    if (!wm->Fetch(fullUrl, response, finished)) return false;
+    if (!WaitForResponse(response, finished)) return false;
+
+    if (response.length() == 0) return false;
+
+    DynamicJsonDocument doc(2048);
+    DeserializationError error = deserializeJson(doc, response);
+    if (error) {
+        Serial.print("[Requests] Erro ao processar JSON de Download: ");
+        Serial.println(error.c_str());
+        return false;
+    }
+
+    outSaveData.id = doc["id"];
+    strlcpy(outSaveData.userName, doc["userName"] | "", sizeof(outSaveData.userName));
+    outSaveData.steps = doc["steps"];
+
+    JsonArray petsArray = doc["pets"].as<JsonArray>();
+    outSaveData.petsCount = 0;
+
+    for (JsonObject petObj : petsArray) {
+        if (outSaveData.petsCount >= MAX_PETS_INVENTORY) break;
+
+        int idx = outSaveData.petsCount;
+        outSaveData.pets[idx].id = petObj["id"];
+        strlcpy(outSaveData.pets[idx].name, petObj["name"] | "", sizeof(outSaveData.pets[idx].name));
+        outSaveData.pets[idx].level = petObj["level"];
+        outSaveData.pets[idx].xp = petObj["xp"];
+        outSaveData.pets[idx].species = petObj["species"];
+        outSaveData.pets[idx].isActive = petObj["isActive"];
+
+        outSaveData.petsCount++;
+    }
+
+    Serial.println("[Requests] Save baixado e populado com sucesso!");
+    return true;
+}
