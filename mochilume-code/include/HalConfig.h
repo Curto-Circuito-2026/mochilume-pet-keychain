@@ -42,6 +42,19 @@
 #define MPU_SDA      21
 #define MPU_SCL      22
 
+// --- API URLS ---
+#define API_BASE_URL "https://api-mochilume-acd9htg9ghhacghy.brazilsouth-01.azurewebsites.net"
+// Global
+#define HEALTH_ENDPOINT       API_BASE_URL "/health"
+// Auth
+#define AUTH_REGISTER_ENDPOINT API_BASE_URL "/api/Auth/register"
+#define AUTH_LOGIN_ENDPOINT    API_BASE_URL "/api/Auth/login"
+// Save System
+#define SAVE_UPLOAD_ENDPOINT   API_BASE_URL "/api/Save/upload"
+// Para o download, você pode concatenar o username direto na string se preferir, 
+// ou usar como base para um sprintf/snprintf formatado:
+#define SAVE_DOWNLOAD_BASE_URL API_BASE_URL "/api/Save/"
+#define SAVE_DOWNLOAD_SUFFIX   "/download"
 
 //PATH DE ARQUIVO DE SAVE
 #define PLAYER_SAVE_PATH "/player.sav"
