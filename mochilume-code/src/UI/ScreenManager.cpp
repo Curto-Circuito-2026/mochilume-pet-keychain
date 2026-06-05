@@ -50,7 +50,6 @@ void ScreenManager::render(){
     }
 
     if(this->dirty){
-        Serial.println("dirty re-render");
         Adafruit_GC9A01A* _tft = DisplayManager::getInstance()->getTFT();
         for(int stripOffset = 0; stripOffset < SCREEN_HEIGHT; stripOffset += SCREEN_STRIP){
             canvas->fillScreen(GC9A01A_BLACK);
