@@ -7,12 +7,14 @@
 #include "Activities/Menu.h"
 #include "Activities/Config.h"
 #include "Activities/Mochilume.h"
+#include <WifiManager.h>
 
 
 DisplayManager* display;
 ScreenManager* screen;
 ActivityManager* activity;
 InputManager* input;
+WifiManager* wifiManager;
 
 Test* testActivity = nullptr;
 Menu* menuActivity = nullptr;
@@ -43,6 +45,44 @@ void setup() {
 
     testActivity = new Test();
     activity->registerActivity(testActivity);
+
+
+    wifiManager = WifiManager::getInstance();
+    Serial.println("WIFI OK");
+
+    std::vector<String> availableWifis = wifiManager->GetAvaliableWifis();
+    wifiManager->Connect("APT12", "Bunny1504");
+
+
+    const char* novoUsuario = "ArthurPalladino";
+    const char* novaSenha   = "SenhaSegura123";
+
+    char jsonPayload[128];
+    snprintf(jsonPayload, sizeof(jsonPayload), "{\"userName\":\"%s\",\"password\":\"%s\"}", novoUsuario, novaSenha);
+
+    Serial.println("Tentando registrar jogador...");
+    Serial.print("Payload de envio: ");
+    Serial.println(jsonPayload);
+
+    String respostaRegistro = "";
+    bool registroTerminou = false;
+
+    wifiManager->Fetch(AUTH_REGISTER_ENDPOINT, POST, jsonPayload, respostaRegistro, registroTerminou);
+
+    while (!registroTerminou) {
+        delay(10);
+    }
+
+    Serial.println("--- RESULTADO DO REGISTRO ---");
+    if (respostaRegistro.length() > 0) {
+        Serial.print("Resposta do Servidor: ");
+        Serial.println(respostaRegistro.c_str());
+    } else {
+        Serial.println("Registro enviado! Verifique se o status do HTTP no servidor retornou 200 OK.");
+    }
+
+
+
 
     // configActivity = new Config();
     // activity->registerActivity(configActivity);
