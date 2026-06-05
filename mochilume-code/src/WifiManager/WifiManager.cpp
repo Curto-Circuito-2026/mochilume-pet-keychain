@@ -2,7 +2,6 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 
-
 WifiManager* WifiManager::_instance = nullptr;
 
 WifiManager::WifiManager() {
@@ -14,56 +13,65 @@ WifiManager* WifiManager::getInstance() {
     return _instance;
 }
 
+void WifiManager::FetchTask(void* pvParameters) {
+    FetchPayload* data = (FetchPayload*)pvParameters;
+    
+    HTTPClient http;
+    if (http.begin(data->uri)) {
+        http.addHeader("Content-Type", "application/json");
+        int httpCode = -1;
 
-std::future<String> WifiManager::Fetch(String URI, HTTPMETHOD method, const String& payload){
-    return std::async(std::launch::async, [=]() {
-        String result;
-        if(isConnected){
-            HTTPClient http;
-            http.begin(URI);
-            http.addHeader("Content-Type", "application/json");
-            int httpCode = -1;
-
-            switch (method) {
-                case GET:    httpCode = http.GET();        break;
-                case POST:   httpCode = http.POST(payload);   break;
-            }
-
-            if (httpCode > 0) {
-                result = http.getString();
-            }
-
-
-            http.end();
+        switch (data->method) {
+            case GET:  httpCode = http.GET(); break;
+            case POST: httpCode = http.POST(data->payload); break;
         }
-        return result;
-    });
-}
-std::future<String> WifiManager::Fetch(String URI){
-        return std::async(std::launch::async, [=]() {
-        String result;
-        if(isConnected){
-            HTTPClient http;
-            http.begin(URI);
-            http.addHeader("Content-Type", "application/json");
 
-            int httpCode = http.GET();
-           
-            if (httpCode > 0) {
-                result = http.getString();
-            }
-
-
-            http.end();
+        if (httpCode > 0) {
+            *(data->resultDest) = http.getString();
         }
-        return result;
-    });
+        http.end();
+    }
+
+    *(data->finishedFlag) = true;
+    delete data; 
+    vTaskDelete(NULL); 
 }
+
+bool WifiManager::Fetch(String URI, HTTPMETHOD method, const String& payload, String& outResult, bool& outFinished) {
+    if (!isConnected) return false;
+
+    outFinished = false;
+    outResult = "";
+
+    FetchPayload* data = new FetchPayload();
+    data->uri = URI;
+    data->method = method;
+    data->payload = payload;
+    data->resultDest = &outResult;
+    data->finishedFlag = &outFinished;
+
+    BaseType_t res = xTaskCreatePinnedToCore(
+        WifiManager::FetchTask, // Função da task
+        "HTTP_Fetch_Task",     // Nome interno
+        4096,                  // Tamanho da Stack (AQUI TÁ A SOLUÇÃO)
+        (void*)data,           // Parâmetros enviados
+        1,                     // Prioridade
+        NULL,                  // Handler
+        1                      // Core 1
+    );
+
+    return res == pdPASS;
+}
+
+bool WifiManager::Fetch(String URI, String& outResult, bool& outFinished) {
+    return Fetch(URI, GET, "", outResult, outFinished);
+}
+
 
 std::vector<String> WifiManager::GetAvaliableWifis() {
     std::vector<String> networks;
-    int found = WiFi.scanNetworks();
 
+    int found = WiFi.scanNetworks();
     for (int i = 0; i < found; i++) {
         networks.push_back(WiFi.SSID(i));
     }
@@ -86,7 +94,7 @@ bool WifiManager::Connect(const String SSID, const String& password) {
     if(!this->isConnected) {
         WiFi.disconnect();
     }
-
+    Serial.println(this->isConnected ? "Connected to WiFi" : "Failed to connect to WiFi");
     return this->isConnected;
 
 }
