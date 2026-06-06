@@ -5,30 +5,8 @@
 #include <string>
 #include <Adafruit_GC9A01A.h>
 #include "Assets.h"
+#include "UIStyle.h"
 
-enum TextAlign {
-    LEFT,
-    CENTER,
-    RIGHT
-};
-
-struct UIStyle {
-    int16_t width, height;
-    int8_t borderRadius;
-    uint16_t color;
-    bool noFill;
-    const Sprite* sprite;
-    
-    
-    int16_t z;
-
-    int16_t offsetX, offsetY;
-    int8_t paddingX, paddingY;
-
-    uint16_t textColor;
-    uint8_t textSize;
-    TextAlign textAlign;
-};
 
 enum class UIState {
     BASE, HOVERED, SELECTED

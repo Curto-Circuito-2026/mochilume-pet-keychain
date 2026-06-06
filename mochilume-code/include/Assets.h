@@ -1157,6 +1157,4 @@ static const Sprite pet_1 = {
   nullptr
 };
 
-
-
 #endif

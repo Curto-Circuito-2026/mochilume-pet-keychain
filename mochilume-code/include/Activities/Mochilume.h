@@ -66,6 +66,7 @@ class MochilumePet {
         void changeSkill(int index, int val);
 
         int getBaseHP();
+        int getSpecie();
 
         //usar em batalha
         void changeCurHP(int addr);
@@ -104,6 +105,7 @@ struct ShortPetData{
     int specie;
     String name;
     int hp;
+    int maxHP;
 };
 
 struct Battle{

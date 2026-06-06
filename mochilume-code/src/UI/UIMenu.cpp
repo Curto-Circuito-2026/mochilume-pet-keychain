@@ -11,9 +11,6 @@ UIMenu::UIMenu(std::string id, int16_t x, int16_t y, UIStyle style, UIStyle hove
 void UIMenu::addChild(UIElement* child){
     UIElement::addChild(child); 
     
-    if(this->direction == 0){
-        this->rows +=1;
-    }
     if(this->direction == 1){
         this->columns +=1;
     }

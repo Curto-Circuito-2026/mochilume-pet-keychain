@@ -7,16 +7,18 @@
 #include "Activities/Menu.h"
 #include "Activities/Config.h"
 #include "Activities/Mochilume.h"
+#include <SaveManager.h>
 
 
 DisplayManager* display;
 ScreenManager* screen;
 ActivityManager* activity;
+SaveManager* save;
 InputManager* input;
 
 Test* testActivity = nullptr;
 Menu* menuActivity = nullptr;
-// Config* configActivity = nullptr;
+Config* configActivity = nullptr;
 Mochilume* mochilumeActivity = nullptr;
 
 void setup() {
@@ -41,11 +43,16 @@ void setup() {
     screen = ScreenManager::getInstance();
     Serial.println("SCREEN OK");
 
+    Serial.println("FILES START");
+    save = SaveManager::getInstance();
+    save->begin();
+    Serial.println("FILES OK");
+
     testActivity = new Test();
     activity->registerActivity(testActivity);
 
-    // configActivity = new Config();
-    // activity->registerActivity(configActivity);
+    configActivity = new Config();
+    activity->registerActivity(configActivity);
 
     mochilumeActivity = new Mochilume();
     activity->registerActivity(mochilumeActivity);

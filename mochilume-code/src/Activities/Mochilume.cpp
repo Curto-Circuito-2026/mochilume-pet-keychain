@@ -6,46 +6,6 @@
 #include <random>
 #include <UI/UIMenu.h>
 #include <UI/UIInput.h>
-UIStyle button = {
-    80,20,
-    8,
-    COLOR_BACKGROUND_BLUE,
-    false,
-    nullptr,
-    1,
-    0,0,
-    10,7,
-    COLOR_TEXT_MINT,
-    1,
-    TextAlign::CENTER
-};
-UIStyle hoverButton = {
-    80,20,
-    8,
-    COLOR_TEXT_MINT,
-    false,
-    nullptr,
-    1,
-    0,0,
-    10,7,
-    COLOR_BACKGROUND_BLUE,
-    1,
-    TextAlign::CENTER
-};
-
-UIStyle menu = {
-    0,0,
-    0,
-    COLOR_TEXT_MINT,
-    true,
-    nullptr,
-    1,
-    0,0,
-    0,0,
-    COLOR_BACKGROUND_BLUE,
-    1,
-    TextAlign::CENTER
-};
 
 UIStyle skillButton = {
     60,10,
@@ -87,20 +47,6 @@ UIStyle selectedSkillButton = {
     TextAlign::CENTER
 };
 
-UIStyle text = {
-    0,0,
-    0,
-    0,
-    true,
-    nullptr,
-    1,
-    0,0,
-    0,1,
-    COLOR_TEXT_MINT,
-    1,
-    TextAlign::CENTER
-
-};
 
 UIStyle resolveText = {
     240,0,
@@ -160,20 +106,6 @@ UIStyle selectedText = {
 
 };
 
-UIStyle backdrop = {
-    240,240,
-    0,
-    GC9A01A_BLACK,
-    false,
-    nullptr,
-    10,
-    0,0,
-    0,0,
-    COLOR_BACKGROUND_BLUE,
-    1,
-    TextAlign::CENTER
-};
-
 
 UIStyle battleBox = {
     240,55,
@@ -215,20 +147,6 @@ UIStyle squareStyle = {
     GC9A01A_BLACK,
     1
 };
-  UIStyle squareStyle2 = {
-    20, 
-    20, 
-    0,
-    GC9A01A_BLUE,
-    false,
-    nullptr,
-    1,
-    0,0,
-    0,0,
-    GC9A01A_BLACK,
-    1
-};
-  
 
 std::map<int, PetData> petInfoMap = {
   {1, {"testPET", 0, 0, 0, 0, {{1, {1,2,3,4,5,6,7,8,9,10}}}, &pet_1, -1, -1}}  
@@ -249,6 +167,9 @@ std::map<int, MochilumeSkill> allSkills = {
 
 int MochilumePet::getBaseHP(){
     return this->baseHP;
+}
+int MochilumePet::getSpecie(){
+    return this->species;
 }
 
 void MochilumePet::setData(int species, int level, int xp, String name, int baseHP, int baseDEF, int baseSPD, int baseATK, int skills[4], std::vector<int> skillPoll){
@@ -392,9 +313,9 @@ void Mochilume::createHomeScreen(){
         "menu",
         80,
         20,
-        menu,
-        menu,
-        menu,
+        emptyStyle,
+        emptyStyle,
+        emptyStyle,
         1,
         0,
         0,
@@ -430,9 +351,9 @@ void Mochilume::createStatsScreen(){
         UIMenu* skillMenu = new UIMenu(
         "menu", 
         150, 60, 
-        menu,
-        menu,
-        menu,
+        emptyStyle,
+        emptyStyle,
+        emptyStyle,
         1,
         0,
         0,
@@ -594,9 +515,6 @@ void Mochilume::createBattleScreen(){
         battleBox, 
         battleBox);
 
-
-        
-
     UIMenu* skillMenu = new UIMenu(
         "skills",
         60,
@@ -695,11 +613,39 @@ void Mochilume::startBattle(bool host, String seed, ShortPetData enemy){
     this->battleInfo.isHost = host;
     this->battleInfo.seed = seed;
 
-        //update battle pra popular info do pet inimigo;
     UIElement* enemySQ = this->battle->getChild("enemy");
-
+    enemySQ->getChild("name")->setText(enemy.name);
+    enemySQ->getChild("hp")->setText(String(enemy.hp) + "/" + String(enemy.maxHP));
+    enemySQ->getChild("image")->setBaseStyle({
+        96,106,
+        0,
+        0,
+        false,
+        petInfoMap[enemy.specie].sprite,
+        1,
+        0,0,
+        0,1,
+        COLOR_TEXT_MINT,
+        1,
+        TextAlign::CENTER
+    });
 
     UIElement* playerSQ = this->battle->getChild("player");
+    playerSQ->getChild("name")->setText(this->pet->name);
+    playerSQ->getChild("hp")->setText(String(this->pet->curHP) + "/" + String(this->pet->getBaseHP()));
+    playerSQ->getChild("image")->setBaseStyle({
+        96,106,
+        0,
+        0,
+        false,
+        petInfoMap[this->pet->getSpecie()].sprite,
+        1,
+        0,0,
+        0,1,
+        COLOR_TEXT_MINT,
+        1,
+        TextAlign::CENTER
+    });
 
     this->_screen->changeScreen(battle);
 

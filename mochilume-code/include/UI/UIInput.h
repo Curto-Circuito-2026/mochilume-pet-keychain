@@ -5,7 +5,7 @@
 
 extern UIStyle charStyle;
 extern UIStyle charStyleHover;
-extern UIStyle inputStyle;
+extern UIStyle keyboardInputStyle;
 class UIInput : public UIElement {
     private:
         int charSize;
