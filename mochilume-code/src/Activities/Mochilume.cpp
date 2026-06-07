@@ -579,7 +579,7 @@ void Mochilume::createBattleSelectionScreen(){
             .curATK = this->pet->curATK
         };
         LoraManager::getInstance()->sendPacket<BattleStartModel>(model, BATTLE_START);
-        startBattle(false, model.seed, model.opponentPet);
+        startBattle(false, model.seed, battleInfo.enemy);
     });
 
     UIElement* declineButton = new UIElement(
@@ -1067,14 +1067,14 @@ void Mochilume::battleSelectionLoop(){
             }
         }
         if(packet.type == BATTLE_INVITE){
-            ShortPetData pet = LoraManager::getInstance()->handlePacket<ShortPetData>(packet);
+            ShortPetData petShort = LoraManager::getInstance()->handlePacket<ShortPetData>(packet);
             LoraManager::getInstance()->connect(packet.source);
             this->battleSelect->getChild("acceptMessage")->setVisibility(true);
             this->battleSelect->getChild("menu")->setState(UIState::BASE);
             this->battleSelect->setSelectedIndex(1);
             this->battleSelect->getChild("acceptMessage")->setSelectedIndex(0);
             this->battleSelect->getChild("acceptMessage")->getChild("acceptMenu")->setState(UIState::SELECTED);
-            this->battleInfo.enemy = pet;
+            this->battleInfo.enemy = petShort;
             this->battleInfo.isHost = false;
            
         }
