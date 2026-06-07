@@ -115,7 +115,7 @@ void WifiManager::Disconnect(){
 }
 
 bool WifiManager::ReConnect(){
-    this->Connect(this->currentNetwork, this->savedPassword);
+    return this->Connect(this->currentNetwork, this->savedPassword);
 }
 bool WifiManager::Connect(const String SSID, const String& password) {
     WiFi.begin(SSID.c_str(), password.c_str());

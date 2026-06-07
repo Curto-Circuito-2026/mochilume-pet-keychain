@@ -909,8 +909,18 @@ void Mochilume::battleSelectionLoop(){
             newPoint->setAction(BTN_A, [this, packet](UIElement* element) {
                 LoraManager::getInstance()->connect(packet.source);
 
-                String msg = "Battle";
-                LoraManager::getInstance()->sendPacket<String>(msg, MESSAGE);
+                BattleInviteModel invite = {
+                    .sourcePet = {
+                        .specie = this->pet->getSpecie(),
+                        .name = this->pet->name,
+                        .maxHP = this->pet->curHP,
+                        .curHP = this->pet->curHP,
+                        .curSPD = this->pet->curSPD,
+                        .curDEF = this->pet->curDEF,
+                        .curATK = this->pet->curATK
+                    }
+                };
+                LoraManager::getInstance()->sendPacket<BattleInviteModel>(invite, BATTLE_INVITE);
             });
             newPoint->setText("Desafiar " + msg.message);
             menu->addChild(newPoint);
