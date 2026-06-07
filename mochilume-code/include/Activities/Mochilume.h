@@ -2,18 +2,9 @@
 #define MOCHILUME_H
 #include "Activity.h"
 #include <Adafruit_GC9A01A.h>
-
-
-enum StatType {
-    DEF,
-    SPD,
-    ATK,
-    HP
-};
-enum SkillTarget {
-    SELF,
-    OTHER
-};
+#include "PetData.h"
+#include "LoraManager.h"
+#include "PacketModels.h"
 
 struct MochilumeSkill {
     String name;
@@ -101,17 +92,6 @@ enum BattleStatus {
     None
 };
 
-struct ShortPetData{
-    int specie;
-    String name;
-    int maxHP;
-    int curHP;
-    
-    int curSPD;
-    int curDEF;
-    int curATK;
-};
-
 struct Battle{
     BattleStatus status;
     String seed;
@@ -119,6 +99,7 @@ struct Battle{
     int selectedSkill;
     int enemySkill;
     bool isHost;
+    std::vector<BattleAction> actions;
 };
 
 class Mochilume : public Activity {
@@ -132,7 +113,8 @@ private:
 
     Battle battleInfo;
     void startBattle(bool host, String seed, ShortPetData enemy);
-    void resolveBattleTurn();
+    std::vector<BattleAction> resolveBattleTurn();
+    void passBattleActions(std::vector<BattleAction> actions);
 
     void loadPetData();
 

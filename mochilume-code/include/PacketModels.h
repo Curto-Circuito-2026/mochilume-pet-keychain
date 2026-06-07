@@ -1,6 +1,8 @@
-#include <Arduino.h>
-#include "Activities/Mochilume.h"
+#ifndef PACKET_MODELS_H
+#define PACKET_MODELS_H
 
+#include <Arduino.h>
+#include "PetData.h"
 enum PacketType {
     PING,       // Descobrir quem está perto (Lobby)
     PONG,       // Responder ao sinal de Ping
@@ -39,6 +41,7 @@ struct BattleSkillModel {
 };
 
 struct BattleAction{
+    bool isHost;
     String action; // Descrição textual da ação (ex: "Pet A usou Skill X!");
     String result; // Descrição do resultado (ex: "Pet B perdeu 20 HP!");
     int value;
@@ -48,3 +51,5 @@ struct BattleAction{
 struct BattleTurnModel {
     std::vector<BattleAction> actions; // Lista de ações ocorridas no turno;
 };
+
+#endif

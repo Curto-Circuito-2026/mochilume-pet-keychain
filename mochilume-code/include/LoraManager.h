@@ -1,9 +1,15 @@
+
+
+#ifndef LORA_MANAGER_H    
+#define LORA_MANAGER_H
+
 #include <Arduino.h>
 #include "Activities/Mochilume.h"
 #include "HalConfig.h"
 #include "RadioLib.h"
 #include <ArduinoJson.h>
 #include "PacketModels.h"
+#include "PetData.h"
 
 #define LORA_CONNECTION_TIMEOUT 60000 // Tempo limite para considerar uma conexão perdida (30 segundos)
 
@@ -102,6 +108,7 @@ class LoraManager {
                         actObj["action"] = model.actions[i].action;
                         actObj["result"] = model.actions[i].result;
                         actObj["value"]  = model.actions[i].value;
+                        actObj["isHost"] = model.actions[i].isHost;
                         actObj["stat"]   = static_cast<int>(model.actions[i].stat);
                         actObj["target"] = static_cast<int>(model.actions[i].target);
                     }
@@ -196,6 +203,7 @@ class LoraManager {
                         action.action = doc["actionsArray"][i]["action"].as<String>();
                         action.result = doc["actionsArray"][i]["result"].as<String>();
                         action.value  = doc["actionsArray"][i]["value"].as<int>();
+                        action.isHost = doc["actionsArray"][i]["isHost"].as<bool>();
                         action.stat   = static_cast<StatType>(doc["actionsArray"][i]["stat"].as<int>());
                         action.target = static_cast<SkillTarget>(doc["actionsArray"][i]["target"].as<int>());
                         model->actions.push_back(action);
@@ -211,3 +219,5 @@ class LoraManager {
         }
 
 };
+
+#endif
