@@ -640,7 +640,7 @@ void Mochilume::startBattle(bool host, String seed, ShortPetData enemy){
 
     UIElement* enemySQ = this->battle->getChild("enemy");
     enemySQ->getChild("name")->setText(enemy.name);
-    enemySQ->getChild("hp")->setText(String(enemy.hp) + "/" + String(enemy.maxHP));
+    enemySQ->getChild("hp")->setText(String(enemy.curHP) + "/" + String(enemy.maxHP));
     enemySQ->getChild("image")->setBaseStyle({
         96,106,
         0,

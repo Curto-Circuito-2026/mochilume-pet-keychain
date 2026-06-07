@@ -7,7 +7,7 @@ bool Requests::WaitForResponse(String& outResponse, bool& finishedFlag) {
     unsigned long startAttempt = millis();
     while (!finishedFlag) {
         delay(10); 
-        if (millis() - startAttempt > CONNECTION_TIMEOUT) {
+        if (millis() - startAttempt > WIFI_CONNECTION_TIMEOUT) {
             Serial.println("[Requests] Erro: Timeout na resposta do servidor.");
             return false;
         }

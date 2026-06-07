@@ -104,8 +104,12 @@ enum BattleStatus {
 struct ShortPetData{
     int specie;
     String name;
-    int hp;
     int maxHP;
+    int curHP;
+    
+    int curSPD;
+    int curDEF;
+    int curATK;
 };
 
 struct Battle{

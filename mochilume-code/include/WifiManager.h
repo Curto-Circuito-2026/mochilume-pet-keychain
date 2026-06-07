@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include <vector>
 
-#define CONNECTION_TIMEOUT 10000
+#define WIFI_CONNECTION_TIMEOUT 10000
 
 enum HTTPMETHOD { GET, POST };
 
@@ -30,6 +30,8 @@ public:
     
     String currentNetwork;
     bool isConnected;
+
+    String GetDeviceID();
 
     bool Fetch(String URI, HTTPMETHOD method, const String& payload, String& outResult, bool& outFinished);
     bool Fetch(String URI, String& outResult, bool& outFinished);

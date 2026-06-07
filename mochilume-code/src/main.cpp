@@ -8,7 +8,7 @@
 #include "Activities/Mochilume.h"
 #include <WifiManager.h>
 #include <SaveManager.h>
-
+#include <LoraManager.h>
 
 DisplayManager* display;
 ScreenManager* screen;
@@ -16,6 +16,7 @@ ActivityManager* activity;
 SaveManager* save;
 InputManager* input;
 WifiManager* wifiManager;
+LoraManager* loraManager;
 
 Menu* menuActivity = nullptr;
 Config* configActivity = nullptr;
@@ -50,6 +51,16 @@ void setup() {
 
     wifiManager = WifiManager::getInstance();
     Serial.println("WIFI OK");
+    
+    loraManager = LoraManager::getInstance();
+    Serial.println("LORA OK");
+    
+    PingModel send ={
+        .message = "Hello from ESP32!"
+    };
+
+    loraManager->sendPacket<PingModel>(send, PING);
+    Serial.println("PACKET SENT");
 
     // std::vector<String> availableWifis = wifiManager->GetAvaliableWifis();
     // wifiManager->Connect("APT12", "Bunny1504");

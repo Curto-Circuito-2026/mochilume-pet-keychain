@@ -39,6 +39,10 @@ WifiManager* WifiManager::getInstance() {
     return _instance;
 }
 
+String WifiManager::GetDeviceID() {
+    return WiFi.macAddress();
+}
+
 void WifiManager::FetchTask(void* pvParameters) {
     FetchPayload* data = (FetchPayload*)pvParameters;
     
@@ -117,7 +121,7 @@ bool WifiManager::Connect(const String SSID, const String& password) {
     WiFi.begin(SSID.c_str(), password.c_str());
 
     int elapsed = 0;
-    while (WiFi.status() != WL_CONNECTED && elapsed < CONNECTION_TIMEOUT) {
+    while (WiFi.status() != WL_CONNECTED && elapsed < WIFI_CONNECTION_TIMEOUT) {
         delay(500);
         elapsed += 500;
     }
