@@ -6,6 +6,8 @@
 #include <random>
 #include <UI/UIMenu.h>
 #include <UI/UIInput.h>
+#include <LoraManager.h>
+#include <WifiManager.h>
 
 UIStyle skillButton = {
     60,10,
@@ -313,8 +315,8 @@ void Mochilume::createHomeScreen(){
     exitButton->setAction(BTN_A, [this](UIElement* element) { Serial.println("SAIR - MENU"); ActivityManager::getInstance()->setActivity("menu"); });
     statsButton->setAction(BTN_A, [this](UIElement* element) { Serial.println("IR STATS"); _screen->changeScreen(stats); });
     battleSelectButton->setAction(BTN_A, [this](UIElement* element) { Serial.println("IR BS"); 
-        //_screen->changeScreen(battle); 
-        this->startBattle(false, "", {});
+        _screen->changeScreen(battleSelect); 
+        //this->startBattle(false, "", {});
     });
 
     UIMenu* homeMenu = new UIMenu(
@@ -512,19 +514,118 @@ void Mochilume::createStatsScreen(){
 }
 
 void Mochilume::createBattleSelectionScreen(){
-    battleSelect = new UIScreen();
 
-    UIElement* square3 = new UIElement(
-        "square3", 
-        20, 
-        20, 
-        squareStyle, 
-        squareHoverStyle, 
-        squareStyle);
-    
-    square3->setAction(BTN_A, [this](UIElement* element) { Serial.println("IR HOME"); _screen->changeScreen(home); });
-    battleSelect->addChild(square3);
+    this->battleSelect = new UIScreen();
+
+  
+    UIElement* exitButton = new UIElement(
+        "exitButton", 
+        0, 
+        120, 
+        button, 
+        hoverButton, 
+        button);
+    exitButton->setText("Sair");
+    exitButton->setAction(BTN_A, [this](UIElement* element) { Serial.println("SAIR - MENU"); _screen->changeScreen(home);});
+   
+
+    UIElement* acceptMessage = new UIElement(
+        "acceptMessage", 
+        0, 
+        0, 
+        backdrop, 
+        backdrop, 
+    backdrop);
+    UIElement* acceptText = new UIElement(
+        "acceptText", 
+        40, 
+        80, 
+        text, 
+        text, 
+        text);
+    acceptText->setText("Aceitar desafio?");
+
+    UIMenu* acceptMenu = new UIMenu(
+        "acceptMenu",
+        80,
+        100,
+        emptyStyle,
+        emptyStyle,
+        emptyStyle,
+        1,
+        0,
+        0,
+        false
+    );
+
+    UIElement* acceptButton = new UIElement(
+        "acceptButton", 
+        0, 
+        0, 
+        button, 
+        hoverButton, 
+        button);
+        acceptButton->setText("Aceitar");
+    acceptButton->setAction(BTN_A, [this](UIElement* element) { 
+        BattleStartModel model;
+        model.isHost = false;
+        model.seed = String(random(0, 100000));
+        model.opponentPet = {
+            .specie = this->pet->getSpecie(),
+            .name = "Opponent Pet",
+            .maxHP = this->pet->curHP,
+            .curHP = this->pet->curHP,
+            .curSPD = this->pet->curSPD,
+            .curDEF = this->pet->curDEF,
+            .curATK = this->pet->curATK
+        };
+        LoraManager::getInstance()->sendPacket<BattleStartModel>(model, BATTLE_START);
+        startBattle(false, model.seed, model.opponentPet);
+    });
+
+    UIElement* declineButton = new UIElement(
+        "declineButton", 
+        0, 
+        30, 
+        button, 
+        hoverButton, 
+        button);
+    declineButton->setText("Recusar");
+    declineButton->setAction(BTN_A, [this, acceptMessage](UIElement* element) {    
+        String msg = "BattleDecline";
+        LoraManager::getInstance()->sendPacket<String>(msg, MESSAGE);
+        acceptMessage->setVisibility(false);
+        this->battleSelect->setSelectedIndex(0);
+        this->battleSelect->getChild("menu")->setState(UIState::SELECTED);
+        LoraManager::getInstance()->disconnect();
+    });
+
+    acceptMenu->addChild(acceptButton);
+    acceptMenu->addChild(declineButton);
+    acceptMessage->addChild(acceptMenu);
+    acceptMessage->addChild(acceptText);
+    acceptMessage->setSelectedIndex(0);
+    acceptMenu->setState(UIState::SELECTED);
+    acceptMessage->setVisibility(false);
+
+    UIMenu* homeMenu = new UIMenu(
+        "menu",
+        80,
+        20,
+        emptyStyle,
+        emptyStyle,
+        emptyStyle,
+        1,
+        0,
+        0,
+        false
+    );
+    homeMenu->addChild(exitButton);
+    homeMenu->setSelectedIndex(0);
+    battleSelect->addChild(homeMenu);
     battleSelect->setSelectedIndex(0);
+    battleSelect->addChild(acceptMessage);
+    homeMenu->setState(UIState::SELECTED);
 
     this->screens["battleSelect"] = battleSelect;
 }
@@ -788,7 +889,56 @@ void Mochilume::homeLoop(){
 }
 void Mochilume::statsLoop(){}
 void Mochilume::battleSelectionLoop(){
-    //lora buscar gente perto
+    if (millis() - lastPingTime > pingInterval && LoraManager::getInstance()->isConnected() == false) {
+        PingModel send ={
+            .message = WifiManager::getInstance()->GetDeviceID()
+        };
+        LoraManager::getInstance()->sendPacket<PingModel>(send, PING);
+        lastPingTime = millis();
+    }
+
+    for (Packet packet : LoraManager::getInstance()->getPackets()) {
+        if(packet.type == PING){
+            UIElement* menu = this->battleSelect->getChild("menu");
+            String challengeID = "challenge" + packet.source;
+            UIElement* existing = menu->getChild(challengeID.c_str());
+            if(existing != nullptr){continue;}
+            PingModel msg = LoraManager::getInstance()->handlePacket<PingModel>(packet);
+            int idx = menu->getChildAmount();
+            UIElement* newPoint = new UIElement(challengeID.c_str(), 0, idx * 21, button, hoverButton, button);
+            newPoint->setAction(BTN_A, [this, packet](UIElement* element) {
+                LoraManager::getInstance()->connect(packet.source);
+
+                String msg = "Battle";
+                LoraManager::getInstance()->sendPacket<String>(msg, MESSAGE);
+            });
+            newPoint->setText("Desafiar " + msg.message);
+            menu->addChild(newPoint);
+            menu->setSelectedIndex(idx);
+        }
+        if(packet.type == MESSAGE){
+            String msg = LoraManager::getInstance()->handlePacket<String>(packet);
+            if(msg == "BattleDecline"){
+                LoraManager::getInstance()->disconnect();
+            }
+        }
+        if(packet.type == BATTLE_INVITE){
+            ShortPetData pet = LoraManager::getInstance()->handlePacket<ShortPetData>(packet);
+            LoraManager::getInstance()->connect(packet.source);
+            this->battleSelect->getChild("acceptMessage")->setVisibility(true);
+            this->battleSelect->getChild("menu")->setState(UIState::BASE);
+            this->battleSelect->getChild("acceptMessage")->setSelectedIndex(0);
+            this->battleSelect->getChild("acceptMessage")->getChild("acceptMenu")->setState(UIState::SELECTED);
+            this->battleInfo.enemy = pet;
+            this->battleInfo.isHost = false;
+           
+        }
+        if(packet.type == BATTLE_START){
+            BattleStartModel model = LoraManager::getInstance()->handlePacket<BattleStartModel>(packet);
+            startBattle(true, model.seed, model.opponentPet);
+        }
+    }
+    
 }
 void Mochilume::battleLoop(){
     //logica de combate -> lora enviar pro oponente

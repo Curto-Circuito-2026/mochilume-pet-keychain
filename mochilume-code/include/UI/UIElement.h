@@ -60,6 +60,7 @@ public:
 
     UIElement* getChild(std::string id);
     virtual void addChild(UIElement* child);
+    int getChildAmount();
 
     void setPosition(int16_t x, int16_t y);
     int16_t* getPosition();

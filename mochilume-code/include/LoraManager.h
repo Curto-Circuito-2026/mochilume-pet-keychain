@@ -3,50 +3,7 @@
 #include "HalConfig.h"
 #include "RadioLib.h"
 #include <ArduinoJson.h>
-
-
-enum PacketType {
-    PING,       // Descobrir quem está perto (Lobby)
-    PONG,       // Responder ao sinal de Ping
-    MESSAGE,    // Conversa direta privada P2P
-    BATTLE_START,     // Informação de início de batalha
-    BATTLE_SKILL,      // Informação de movimento em batalha 
-    BATTLE_TURN         // Informação de término do round
-};
-
-struct Packet {
-    String source;      // Quem está enviando (ID do seu ESP32)
-    String destination;     // Para quem vai (Use 0 para mandar para TODO MUNDO / Lobby)
-    PacketType type;      // PING, PONG ou MESSAGE
-    String model;         // O conteúdo da mensagem de texto
-};
-
-
-struct PingModel {
-    String message; 
-};
-struct PongModel {
-    String message;
-};
-
-struct BattleStartModel {
-    String seed; // Semente para geração de números aleatórios (opcional, mas útil para sincronização)
-    ShortPetData opponentPet; // Informações básicas do pet adversário
-}; 
-struct BattleSkillModel {
-    int skillID; // ID da skill usada
-};
-
-struct BattleAction{
-    String action; // Descrição textual da ação (ex: "Pet A usou Skill X!");
-    String result; // Descrição do resultado (ex: "Pet B perdeu 20 HP!");
-    int value;
-    StatType stat; // Qual stat foi afetada, se aplicável
-    SkillTarget target; // Quem foi afetado (SELF ou OTHER)
-};
-struct BattleTurnModel {
-    std::vector<BattleAction> actions; // Lista de ações ocorridas no turno;
-};
+#include "PacketModels.h"
 
 #define LORA_CONNECTION_TIMEOUT 60000 // Tempo limite para considerar uma conexão perdida (30 segundos)
 
@@ -73,6 +30,9 @@ class LoraManager {
 
         std::vector<Packet> getPackets();
 
+        bool isConnected();
+        void disconnect();
+
         template<typename T>
         void sendPacket(T message, PacketType type) {
             Packet packet;
@@ -97,6 +57,11 @@ class LoraManager {
                     doc["message"] = model.message;
                     break;
                 }
+                case MESSAGE: {
+                    const String& model = *static_cast<const String*>(msgPtr);
+                    doc = model;
+                    break;
+                }
                 case BATTLE_START: {
                     const BattleStartModel& model = *static_cast<const BattleStartModel*>(msgPtr);
                     doc["seed"] = model.seed;
@@ -107,6 +72,18 @@ class LoraManager {
                     doc["opponentPet"]["curSPD"] = model.opponentPet.curSPD;
                     doc["opponentPet"]["curDEF"] = model.opponentPet.curDEF;
                     doc["opponentPet"]["curATK"] = model.opponentPet.curATK;
+                    doc["isHost"] = model.isHost;
+                    break;
+                }
+                case BATTLE_INVITE: {
+                    const BattleInviteModel& model = *static_cast<const BattleInviteModel*>(msgPtr);
+                    doc["sourcePet"]["specie"] = model.sourcePet.specie;
+                    doc["sourcePet"]["name"] = model.sourcePet.name;
+                    doc["sourcePet"]["maxHP"] = model.sourcePet.maxHP;
+                    doc["sourcePet"]["curHP"] = model.sourcePet.curHP;
+                    doc["sourcePet"]["curSPD"] = model.sourcePet.curSPD;
+                    doc["sourcePet"]["curDEF"] = model.sourcePet.curDEF;
+                    doc["sourcePet"]["curATK"] = model.sourcePet.curATK;
                     break;
                 }
                 case BATTLE_SKILL: {
@@ -153,5 +130,84 @@ class LoraManager {
         void loop();
 
         template<typename T>
-        T handlePacket(Packet packet);
+        T handlePacket(Packet packet) {
+            T resultContainer; 
+            
+            void* resultPtr = &resultContainer;
+
+            JsonDocument doc;
+            DeserializationError error = deserializeJson(doc, packet.model);
+            if(error) {
+                Serial.print("Failed to parse packet JSON: ");
+                Serial.println(error.f_str());
+                return resultContainer; 
+            }
+            
+            switch(packet.type) {
+                case PING: {
+                    PingModel* model = static_cast<PingModel*>(resultPtr);
+                    model->message = doc["message"].as<String>();
+                    break;
+                }
+                case PONG: {
+                    PongModel* model = static_cast<PongModel*>(resultPtr);
+                    model->message = doc["message"].as<String>();
+                    break;
+                }
+                case MESSAGE: {
+                    String* model = static_cast<String*>(resultPtr);
+                    *model = doc.as<String>();
+                    break;
+                }
+                case BATTLE_START: {
+                    BattleStartModel* model = static_cast<BattleStartModel*>(resultPtr);
+                    model->seed = doc["seed"].as<String>();
+                    model->isHost = doc["isHost"].as<bool>();
+                    model->opponentPet.specie = doc["opponentPet"]["specie"].as<int>();
+                    model->opponentPet.name   = doc["opponentPet"]["name"].as<String>();
+                    model->opponentPet.maxHP  = doc["opponentPet"]["maxHP"].as<int>();
+                    model->opponentPet.curHP  = doc["opponentPet"]["curHP"].as<int>();
+                    model->opponentPet.curSPD = doc["opponentPet"]["curSPD"].as<int>();
+                    model->opponentPet.curDEF = doc["opponentPet"]["curDEF"].as<int>();
+                    model->opponentPet.curATK = doc["opponentPet"]["curATK"].as<int>();
+                    break;
+                }
+                case BATTLE_INVITE: {
+                    BattleInviteModel* model = static_cast<BattleInviteModel*>(resultPtr);
+                    model->sourcePet.specie = doc["sourcePet"]["specie"].as<int>();
+                    model->sourcePet.name   = doc["sourcePet"]["name"].as<String>();
+                    model->sourcePet.maxHP  = doc["sourcePet"]["maxHP"].as<int>();
+                    model->sourcePet.curHP  = doc["sourcePet"]["curHP"].as<int>();
+                    model->sourcePet.curSPD = doc["sourcePet"]["curSPD"].as<int>();
+                    model->sourcePet.curDEF = doc["sourcePet"]["curDEF"].as<int>();
+                    model->sourcePet.curATK = doc["sourcePet"]["curATK"].as<int>();
+                    break;
+                }
+                case BATTLE_SKILL: {
+                    BattleSkillModel* model = static_cast<BattleSkillModel*>(resultPtr);
+                    model->skillID = doc["skillID"].as<int>();
+                    break;
+                }
+                case BATTLE_TURN: {
+                    BattleTurnModel* model = static_cast<BattleTurnModel*>(resultPtr);
+                    int actionsAmount = doc["actionsAmount"].as<int>();
+                    for(int i = 0; i < actionsAmount; i++) {
+                        BattleAction action;
+                        action.action = doc["actionsArray"][i]["action"].as<String>();
+                        action.result = doc["actionsArray"][i]["result"].as<String>();
+                        action.value  = doc["actionsArray"][i]["value"].as<int>();
+                        action.stat   = static_cast<StatType>(doc["actionsArray"][i]["stat"].as<int>());
+                        action.target = static_cast<SkillTarget>(doc["actionsArray"][i]["target"].as<int>());
+                        model->actions.push_back(action);
+                    }
+                    break;
+                }
+                default:
+                    break;
+            }
+            
+            // 3. Retorna o container 'T' preenchido de forma disfarçada pelo ponteiro
+            return resultContainer; 
+        }
+
 };

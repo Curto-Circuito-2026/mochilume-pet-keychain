@@ -109,6 +109,7 @@ void setup() {
 }
 
 void loop() {
+    loraManager->loop();
     input->update();
     activity->loopActivity();
 }

@@ -36,6 +36,10 @@ bool UIElement::getDisabled(){
     return this->disabled;
 }
 
+int UIElement::getChildAmount(){
+    return this->children.size();
+}
+
 
 
 void UIElement::setText(String text){

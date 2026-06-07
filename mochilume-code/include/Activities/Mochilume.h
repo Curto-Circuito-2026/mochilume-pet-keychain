@@ -148,6 +148,9 @@ private:
     void statsLoop();
     void homeLoop();
     void battleLoop();
+
+    long lastPingTime = 0;
+    const long pingInterval = 5000; // 5 segundos
 public:
     Mochilume();
 
