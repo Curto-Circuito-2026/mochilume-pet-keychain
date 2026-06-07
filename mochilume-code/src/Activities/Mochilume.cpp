@@ -538,7 +538,7 @@ void Mochilume::createBattleSelectionScreen(){
     backdrop);
     UIElement* acceptText = new UIElement(
         "acceptText", 
-        40, 
+        90, 
         80, 
         text, 
         text, 
@@ -938,6 +938,7 @@ void Mochilume::battleSelectionLoop(){
             LoraManager::getInstance()->connect(packet.source);
             this->battleSelect->getChild("acceptMessage")->setVisibility(true);
             this->battleSelect->getChild("menu")->setState(UIState::BASE);
+            this->battleSelect->setSelectedIndex(1);
             this->battleSelect->getChild("acceptMessage")->setSelectedIndex(0);
             this->battleSelect->getChild("acceptMessage")->getChild("acceptMenu")->setState(UIState::SELECTED);
             this->battleInfo.enemy = pet;
