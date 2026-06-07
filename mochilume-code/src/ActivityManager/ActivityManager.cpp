@@ -1,11 +1,9 @@
 #include "ActivityManager.h"
-#include "UISystem.h"
 
 ActivityManager* ActivityManager::_instance = nullptr;
 
 ActivityManager::ActivityManager() {
     this->curActivity = nullptr;
-    this->_uiSystem = UISystem::getInstance();
 }
 ActivityManager::~ActivityManager() {
     this->activityMap.clear();
@@ -46,10 +44,4 @@ void ActivityManager::setActivity(const char* name){
 
 void ActivityManager::loopActivity(){
     if(curActivity){curActivity->loop();}
-}
-
-void ActivityManager::renderUI(){
-    if(_uiSystem){
-        _uiSystem->renderAll(DisplayManager::getInstance()->getTFT());
-    }
 }

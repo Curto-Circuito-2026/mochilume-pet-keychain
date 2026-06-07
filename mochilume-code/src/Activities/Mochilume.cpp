@@ -272,7 +272,7 @@ void Mochilume::setup() {
 
 void Mochilume::createHomeScreen(){
     this->home = new UIScreen();
-    this->home->backgroundImage = bgMainSPR;
+    // this->home->backgroundImage = bgMainSPR;
 
     UIElement* statsButton = new UIElement(
         "statsButton", 
