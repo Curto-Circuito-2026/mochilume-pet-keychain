@@ -132,7 +132,6 @@ private:
 
     void loadPetData();
 
-    bool hasLoadedBaseData;
     void loadBaseData();
 
     void createHomeScreen();

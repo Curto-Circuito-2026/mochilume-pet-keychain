@@ -1,5 +1,5 @@
 {
-    "defaultWIFIID" : 0,
+    "defaultWIFIID" : "",
     "defaultWIFIPassword" : "",
 
     "steps": 0,

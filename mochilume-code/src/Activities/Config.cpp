@@ -68,8 +68,8 @@ void Config::createHomeScreen(){
         false
     );
 
-    homeMenu->addChild(accountConfig);
     homeMenu->addChild(WIFIConfig);
+    homeMenu->addChild(accountConfig);
     homeMenu->addChild(exitButton);
     homeMenu->setSelectedIndex(0);
 
@@ -83,10 +83,15 @@ void Config::createHomeScreen(){
 void Config::createWifiDataScreen(){
     this->wifiData = new UIScreen();
 
+    UIElement* cWifiLabel = new UIElement("WIFILabel", 120, 30, text, text, text);
+    cWifiLabel->setText("REDE ATUAL:");
+    UIElement* cWifiName = new UIElement("WIFIName",110, 45, text, text, text);
+    cWifiName->setText(WifiManager::getInstance()->currentNetwork.length() > 0? WifiManager::getInstance()->currentNetwork : "SEM REDE");
+    
     UIMenu* wifiMenu = new UIMenu(
         "wifiMenu",
         80,
-        20,
+        80,
         emptyStyle,
         emptyStyle,
         emptyStyle,
@@ -109,6 +114,8 @@ void Config::createWifiDataScreen(){
     wifiMenu->setSelectedIndex(0);
 
     wifiData->addChild(wifiMenu);
+    wifiData->addChild(cWifiLabel);
+    wifiData->addChild(cWifiName);
     wifiData->setSelectedIndex(0);
     wifiMenu->setState(UIState::SELECTED);
     this->screens["wifiData"] = wifiData;
@@ -116,14 +123,42 @@ void Config::createWifiDataScreen(){
 void Config::createWifiListScreen(){
     this->wifiList = new UIScreen();
 
-    UIMenu* listMenu = new UIMenu("listMenu", 80, 200, emptyStyle, emptyStyle, emptyStyle, 1, 0, 0, false);
+    UIMenu* listMenu = new UIMenu("listMenu", 40, 30, emptyStyle, emptyStyle, emptyStyle, 2, 0, 0, false);
 
     std::vector<String> networks = WifiManager::getInstance()->GetAvaliableWifis();
+
+    UIKeyboard* keypad = new UIKeyboard("keypad", 0, 0);
+    
+    int c = 0;
     for(String s : networks){
-        Serial.println(s);
+        int y = floor(c/2);
+        UIElement* network = new UIElement(s.c_str(), c%2 == 0 ? 0 : 80, y*20, button, hoverButton, button);
+        c++;
+            network->setText(s);
+            network->setAction(BTN_A, [this, s, listMenu, keypad](UIElement* element) { 
+                listMenu->setState(UIState::BASE); 
+                keypad->toggle(true);
+                this->wifiList->setSelectedIndex(keypad->index); 
+                keypad->getChild("keyboard")->setState(UIState::SELECTED);
+
+                keypad->onClose([listMenu, s, this](String typedText) {
+                    if(typedText.length() > 0) {
+                        bool connected = WifiManager::getInstance()->Connect(s, typedText);
+                        if(connected){
+                            this->wifiData->getChild("WIFIName")->setText(s);
+                            this->_screen->changeScreen(this->wifiData);
+                            WifiManager::getInstance()->Disconnect();
+                        }
+                    }
+                    listMenu->getScreen()->setSelectedIndex(listMenu->index);        
+                    listMenu->setState(UIState::SELECTED);
+                });
+        });
+        listMenu->addChild(network);
+
     }
 
-    UIElement* exit = new UIElement("exit", 0, 0, button, hoverButton, button);
+    UIElement* exit = new UIElement("exit", 30, 180, button, hoverButton, button);
     exit->setText("Voltar"); 
     exit->setAction(BTN_A, [this](UIElement* element) { Serial.println("IR WIFIDATA"); _screen->changeScreen(wifiData); });
 
@@ -132,6 +167,7 @@ void Config::createWifiListScreen(){
     listMenu->setState(UIState::SELECTED);
 
     wifiList->addChild(listMenu);
+    wifiList->addChild(keypad);
     wifiList->setSelectedIndex(0);
     listMenu->setState(UIState::SELECTED);
     this->screens["wifiList"] = wifiList;

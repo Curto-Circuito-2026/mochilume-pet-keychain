@@ -21,18 +21,23 @@ class WifiManager {
 private:
     static WifiManager* _instance;
     WifiManager();
+    String savedPassword;
     
     static void FetchTask(void* pvParameters);
 
 public:
     static WifiManager* getInstance();
+    
+    String currentNetwork;
     bool isConnected;
 
     bool Fetch(String URI, HTTPMETHOD method, const String& payload, String& outResult, bool& outFinished);
     bool Fetch(String URI, String& outResult, bool& outFinished);
 
     std::vector<String> GetAvaliableWifis();
+    bool ReConnect();
     bool Connect(const String SSID, const String& password);
+    void Disconnect();
 };
 
 #endif

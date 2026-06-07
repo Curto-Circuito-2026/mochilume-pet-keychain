@@ -652,16 +652,10 @@ void Mochilume::startBattle(bool host, String seed, ShortPetData enemy){
 }
 void Mochilume::resolveBattleTurn(){
     this->battle->getChild("resolve")->setText("");
-
-
 };
 
 void Mochilume::loadBaseData(){
-    if(this->hasLoadedBaseData){
-        return;
-    }else{
-        this->hasLoadedBaseData = true;
-    }
+  
 }
 
 void Mochilume::loadPetData(){
@@ -678,37 +672,57 @@ void Mochilume::loadPetData(){
     int skills[4] = {0, 0, 0, 0};
     std::vector<int> skillPool;
 
-    bool exists = SaveManager::getInstance()->load("mochilume","pets.json",file);
-    if(exists){
-        JsonDocument doc;
-        deserializeJson(doc, file);
+    String filePath = "/mochilume/pets.json";
+    bool fileLoadedSuccessfully = false;
 
-        String n = doc["name"];
-        Serial.println(n);
+    if (LittleFS.exists(filePath)) {
+        File file = LittleFS.open(filePath, "r");
+        if (file) {
+            JsonDocument doc;
+            DeserializationError error = deserializeJson(doc, file);
+            
+            file.close(); 
 
-        species = doc["species"].as<int>();
-        level = doc["level"].as<int>();
-        xp = doc["xp"].as<int>();
-        petName = doc["name"].as<String>();
-        for(int i = 0; i<4; i++){skills [i] = doc["skills"][i].as<int>();}
+            if (!error) {
+                fileLoadedSuccessfully = true;
 
-        PetData d = petInfoMap[species];
+                String n = doc["name"];
+                Serial.println(n);
 
-        baseHP = d.initialHP + (1.5 * level);
-        baseDEF = d.initialDEF + (1.5 * level);
-        baseSPD = d.initialSPD + (1.5 * level);
-        baseATK = d.initialATK + (1.5 * level);
+                species = doc["species"].as<int>();
+                level = doc["level"].as<int>();
+                xp = doc["xp"].as<int>();
+                petName = doc["name"].as<String>();
+                
+                JsonArray skillsArray = doc["skills"];
+                for (int i = 0; i < 4 && i < skillsArray.size(); i++) {
+                    skills[i] = skillsArray[i].as<int>();
+                }
 
-        for(int i = 1; i<=level; i++){
-            skillPool.reserve(skillPool.size() + d.skillPool[i].size());
-            skillPool.insert(skillPool.end(), d.skillPool[i].begin(), d.skillPool[i].end());
+                PetData d = petInfoMap[species];
+
+                baseHP = d.initialHP + (1.5 * level);
+                baseDEF = d.initialDEF + (1.5 * level);
+                baseSPD = d.initialSPD + (1.5 * level);
+                baseATK = d.initialATK + (1.5 * level);
+
+                for(int i = 1; i <= level; i++){
+                    skillPool.reserve(skillPool.size() + d.skillPool[i].size());
+                    skillPool.insert(skillPool.end(), d.skillPool[i].begin(), d.skillPool[i].end());
+                }
+            } else {
+                Serial.print("JSON Parsing failed: ");
+                Serial.println(error.f_str());
+            }
         }
     }
-    else{
+
+    if (!fileLoadedSuccessfully) {
         std::random_device rd; 
         std::mt19937 gen(rd()); 
         std::uniform_int_distribution<> distr(1, petInfoMap.size()); 
         species = distr(gen);
+        
         PetData d = petInfoMap[species];
         level = 1;
         xp = 0;
@@ -717,6 +731,7 @@ void Mochilume::loadPetData(){
         baseDEF = d.initialDEF;
         baseSPD = d.initialSPD;
         baseATK = d.initialATK;
+        
         int c = 0;
         skillPool.clear();
         for(int i : d.skillPool[level]){

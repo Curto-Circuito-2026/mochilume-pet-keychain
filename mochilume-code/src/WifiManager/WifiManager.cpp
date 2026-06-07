@@ -1,11 +1,37 @@
 #include "WifiManager.h"
 #include <WiFi.h>
 #include <HTTPClient.h>
+#include <ArduinoJson.h>
+#include <LittleFS.h>
 
 WifiManager* WifiManager::_instance = nullptr;
 
 WifiManager::WifiManager() {
+
     this->isConnected = false;
+    this->currentNetwork = "";
+    this->savedPassword = "";
+
+    if (LittleFS.exists("/user.json")) {
+        File file = LittleFS.open("/user.json", "r");
+        
+        if (file) {
+            JsonDocument doc;
+            DeserializationError error = deserializeJson(doc, file);
+            
+            if (!error) {
+                const char* savedSSID = doc["defaultWIFIID"];
+                const char* password = doc["defaultWIFIPassword"];
+                
+                if (savedSSID != nullptr && strlen(savedSSID) > 0) {this->currentNetwork = String(savedSSID);}
+                if (password != nullptr && strlen(password) > 0) {this->savedPassword = String(password);}
+            } else {
+                Serial.print(F("Failed to parse user.json: "));
+                Serial.println(error.f_str());
+            }
+            file.close();
+        }
+    }
 }
 
 WifiManager* WifiManager::getInstance() {
@@ -80,6 +106,13 @@ std::vector<String> WifiManager::GetAvaliableWifis() {
     return networks;
 }
 
+void WifiManager::Disconnect(){
+    WiFi.disconnect();
+}
+
+bool WifiManager::ReConnect(){
+    this->Connect(this->currentNetwork, this->savedPassword);
+}
 bool WifiManager::Connect(const String SSID, const String& password) {
     WiFi.begin(SSID.c_str(), password.c_str());
 
@@ -90,6 +123,44 @@ bool WifiManager::Connect(const String SSID, const String& password) {
     }
 
     this->isConnected = WiFi.status() == WL_CONNECTED;
+    if(this->isConnected){
+        this->currentNetwork = SSID;
+        this->savedPassword = password;
+        String filePath = "/user.json";
+        JsonDocument doc;
+        if (LittleFS.exists(filePath)) {
+            File file = LittleFS.open(filePath, "r");
+            if (file) {
+                DeserializationError error = deserializeJson(doc, file);
+                file.close();
+                if (error) {
+                    Serial.println(F("erro achar."));
+                }
+            }
+        
+        }
+
+        doc["defaultWIFIID"] = SSID;
+        doc["defaultWIFIPassword"] = password;
+        
+        if (!doc.containsKey("steps")) doc["steps"] = 0;
+        if (!doc.containsKey("userID")) doc["userID"] = "";
+
+        File file = LittleFS.open(filePath, "w");
+        if (!file) {
+            Serial.println(F("erro ler"));
+            return false;
+        }
+
+        if (serializeJson(doc, file) == 0) {
+            Serial.println(F("erro escrever"));
+            file.close();
+            return false;
+        }
+
+        file.close();
+        Serial.println(F("wifi salvo /user.json"));
+    }
 
     if(!this->isConnected) {
         WiFi.disconnect();
