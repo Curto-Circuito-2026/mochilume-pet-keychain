@@ -30,10 +30,15 @@
 #define FRAME_DELAY  (1000 / TARGET_FPS)
 
 // --- LORA SX1268 (SPI) ---
-#define LORA_CS      14
-#define LORA_DIO1    26
-#define LORA_RST     12
-#define LORA_BUSY    13
+
+#define LORA_SPI_SCK  14  
+#define LORA_SPI_MOSI 13  
+#define LORA_SPI_MISO 12  
+
+#define LORA_CS        2  
+#define LORA_RST      32  
+#define LORA_DIO1     33  
+#define LORA_BUSY     34  
 
 // --- STORAGE (SD CARD) ---
 #define SD_CS        2
