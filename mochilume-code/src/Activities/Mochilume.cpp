@@ -229,21 +229,29 @@ void MochilumePet::levelUp(){
 
 
 void MochilumePet::updateSave(){
-    File file = LittleFS.open(String("/mochilume") + "/" + "pets.json", "w");
-    if (!file) return;
-
+    const char* filePath = "/mochilume/pets.json";
+    File file = LittleFS.open(filePath, "w");
+    if (!file) {
+        Serial.println(F("Failed to open pets.json for writing"));
+        return;
+    }
     JsonDocument doc;
     doc["species"] = this->species;
-    doc["level"] = this->level;
-    doc["xp"] = this->xp;
-    doc["name"] = this->name;
-   
-    JsonArray skillsArr = doc["skills"].to<JsonArray>();
+    doc["level"]   = this->level;
+    doc["xp"]      = this->xp;
+    doc["name"]    = this->name;
+
+    JsonArray skillsArr = doc["skills"].to<JsonArray>(); 
     for (int i = 0; i < 4; i++) {
         skillsArr.add(this->skills[i]);
     }
- 
-    serializeJson(doc, file);
+   
+    if (serializeJson(doc, file) == 0) {
+        Serial.println(F("Failed to write JSON to pets.json"));
+    } else {
+        Serial.println(F("Pet data successfully saved!"));
+    }
+
     file.close();
 }
 
@@ -394,7 +402,7 @@ void Mochilume::createStatsScreen(){
         });
 
         for(int i = 0; i< this->pet->getSkillPool().size(); i++){
-            std::string id = "selectSkill" + std::to_string(i);
+            std::string id = "skill" + std::to_string(i);
             Serial.println(id.c_str());
             int skillId = this->pet->getSkillPool()[i];
         
@@ -417,25 +425,42 @@ void Mochilume::createStatsScreen(){
             sB->setAction(BTN_A, [this, skillId](UIElement* element) { 
                 int index = -1;
                 int slotIndex = -1;
-                for(int i =0; i<4; i++){
-                    if(this->pet->skills[i] == 0 && slotIndex == -1){slotIndex = i;}
+
+                for(int i = 0; i < 4; i++){
+                    if(this->pet->skills[i] == 0 && slotIndex == -1) { slotIndex = i; }
                     if(this->pet->skills[i] == skillId){
-                    index = i;
-                    break;
-                }
-                }
+                        index = i;
+                        break;
+                    }
+                }       
+                
 
                 if(index >= 0){
                     this->pet->changeSkill(index, 0);
                     element->setBaseStyle(skillButton);
-                    std::string btnID = "skill" + std::to_string(index+1);
-                    element->getScreen()->getChild(btnID)->setText("S/E");
+                    std::string btnID = "skillSlot" + std::to_string(index + 1);
+                        UIElement* child = this->stats->getChild(btnID);
+                        if (child != nullptr) {
+                            Serial.println("oi");
+                            child->setText("S/E");
+                        } else {
+                            Serial.printf("CRASH PREVENTED: Child UI element '%s' not found!\n", btnID.c_str());
+                        }
+                    
                     Serial.println("DESEQUIPEI SKILL");
                 }else if(slotIndex >= 0){
                     this->pet->changeSkill(slotIndex, skillId);
                     element->setBaseStyle(selectedSkillButton);
-                    std::string btnID = "skill" + std::to_string(slotIndex+1);
-                    element->getScreen()->getChild(btnID)->setText(allSkills[skillId].name);
+                    std::string btnID = "skillSlot" + std::to_string(slotIndex + 1);
+
+                        UIElement* child = this->stats->getChild(btnID);
+                        if (child != nullptr) {
+                            Serial.println("oi");
+                            child->setText(allSkills[skillId].name);
+                        } else {
+                            Serial.printf("CRASH PREVENTED: Child UI element '%s' not found!\n", btnID.c_str());
+                        }
+                    
                     Serial.println("EQUIPEI SKILL");
                 }
             });
@@ -467,16 +492,16 @@ void Mochilume::createStatsScreen(){
         UIElement* petImage = new UIElement("petImage", 30, 80, petImageStyle, petImageStyle, petImageStyle);
         stats->addChild(petImage);
 
-        UIElement* skill1 = new UIElement("skill1",20,60,selectedSkillButton, selectedSkillButton, selectedSkillButton);
+        UIElement* skill1 = new UIElement("skillSlot1",20,60,selectedSkillButton, selectedSkillButton, selectedSkillButton);
         skill1->setText(this->pet->skills[0] > 0 ? allSkills[this->pet->skills[0]].name : "S/E");
         stats->addChild(skill1);
-        UIElement* skill2 = new UIElement("skill2",81,60,selectedSkillButton, selectedSkillButton, selectedSkillButton);
+        UIElement* skill2 = new UIElement("skillSlot2",81,60,selectedSkillButton, selectedSkillButton, selectedSkillButton);
         skill2->setText(this->pet->skills[1] > 0 ? allSkills[this->pet->skills[1]].name : "S/E");
         stats->addChild(skill2);
-        UIElement* skill3 = new UIElement("skill3",20,71,selectedSkillButton, selectedSkillButton, selectedSkillButton);
+        UIElement* skill3 = new UIElement("skillSlot3",20,71,selectedSkillButton, selectedSkillButton, selectedSkillButton);
         skill3->setText(this->pet->skills[2] > 0 ? allSkills[this->pet->skills[2]].name : "S/E");
         stats->addChild(skill3);
-        UIElement* skill4 = new UIElement("skill4",81,71,selectedSkillButton, selectedSkillButton, selectedSkillButton);
+        UIElement* skill4 = new UIElement("skillSlot4",81,71,selectedSkillButton, selectedSkillButton, selectedSkillButton);
         skill4->setText(this->pet->skills[3] > 0 ? allSkills[this->pet->skills[3]].name : "S/E");
         stats->addChild(skill4);
 
