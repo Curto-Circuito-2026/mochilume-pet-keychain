@@ -54,14 +54,7 @@ void setup() {
     
     loraManager = LoraManager::getInstance();
     Serial.println("LORA OK");
-    
-    PingModel send ={
-        .message = "Hello from ESP32!"
-    };
-
-    loraManager->sendPacket<PingModel>(send, PING);
-    Serial.println("PACKET SENT");
-
+   
     // std::vector<String> availableWifis = wifiManager->GetAvaliableWifis();
     // wifiManager->Connect("APT12", "Bunny1504");
 

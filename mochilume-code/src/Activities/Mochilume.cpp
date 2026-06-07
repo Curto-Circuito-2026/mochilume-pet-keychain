@@ -889,7 +889,7 @@ void Mochilume::homeLoop(){
 }
 void Mochilume::statsLoop(){}
 void Mochilume::battleSelectionLoop(){
-    if (millis() - lastPingTime > pingInterval && LoraManager::getInstance()->isConnected() == false) {
+    if (millis() - lastPingTime > pingInterval) {
         PingModel send ={
             .message = WifiManager::getInstance()->GetDeviceID()
         };
@@ -898,6 +898,7 @@ void Mochilume::battleSelectionLoop(){
     }
 
     for (Packet packet : LoraManager::getInstance()->getPackets()) {
+        Serial.println("Packet received: " + String(packet.type) + " from " + packet.source);
         if(packet.type == PING){
             UIElement* menu = this->battleSelect->getChild("menu");
             String challengeID = "challenge" + packet.source;
