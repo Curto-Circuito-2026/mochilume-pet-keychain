@@ -1,18 +1,22 @@
 #ifndef UIScreen_H
 #define UIScreen_H
 
-#include <unordered_map>
+#include <map>
 #include <string>
 #include <Adafruit_GC9A01A.h>
 #include "UIElement.h"
 
 class UIScreen {
 private:
-    std::unordered_map<std::string, UIElement*> elements;
+    std::map<std::string, UIElement*> elements;
     bool visible;
     UIElement* selectedElement;
     uint8_t selectedIndex;
+
 public:
+    uint16_t backgroundColor;
+    const uint16_t* backgroundImage;
+
     UIScreen();
     ~UIScreen();
 

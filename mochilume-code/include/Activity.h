@@ -17,9 +17,8 @@ class Activity {
         Adafruit_GC9A01A* _tft = DisplayManager::getInstance()->getTFT();
         ScreenManager* _screen = ScreenManager::getInstance();
         InputManager* _input = InputManager::getInstance();
-        std::unordered_map<std::string, UIScreen*> screens;
-
-        void initUISystem();
+        std::map<std::string, UIScreen*> screens;
+        
     public: 
         const char* name;
         const uint8_t* icon;

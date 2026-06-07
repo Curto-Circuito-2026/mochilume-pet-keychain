@@ -1,0 +1,331 @@
+#include "Activities/Config.h"
+#include "ActivityManager.h"
+#include <DisplayManager.h>
+#include "Assets.h"
+#include <UI/UIMenu.h>
+#include <UI/UIKeyboard.h>
+#include "WifiManager.h"
+
+Config::Config() 
+    : Activity("config", nullptr) {}
+void Config::setup() {
+    this->createHomeScreen();
+    this->createWifiDataScreen();
+    this->createWifiListScreen();
+    this->createDataAccountScreen();
+    this->createRegisterAccountScreen();
+    this->createLoginAccountScreen();
+
+    _screen->changeScreen(home);
+};
+
+
+void Config::createHomeScreen(){
+    home = new UIScreen();
+
+    UIElement* WIFIConfig = new UIElement(
+        "wifi", 
+        0, 
+        0, 
+        button, 
+        hoverButton, 
+        button);
+    WIFIConfig->setText("WIFI");
+
+    UIElement* accountConfig = new UIElement(
+        "account", 
+        0, 
+        30, 
+        button, 
+        hoverButton, 
+        button);
+    
+    accountConfig->setText("Conta");
+
+    UIElement* exitButton = new UIElement(
+        "exitButton", 
+        0, 
+        60, 
+        button, 
+        hoverButton, 
+        button);
+    exitButton->setText("Sair");
+
+    exitButton->setAction(BTN_A, [this](UIElement* element) { Serial.println("SAIR - MENU"); ActivityManager::getInstance()->setActivity("menu"); });
+    WIFIConfig->setAction(BTN_A, [this](UIElement* element) { Serial.println("IR WIFI"); _screen->changeScreen(wifiData); });
+    accountConfig->setAction(BTN_A, [this](UIElement* element) { Serial.println("IR CONTA"); _screen->changeScreen(dataAccount); });
+
+    UIMenu* homeMenu = new UIMenu(
+        "menu",
+        80,
+        20,
+        emptyStyle,
+        emptyStyle,
+        emptyStyle,
+        1,
+        0,
+        0,
+        false
+    );
+
+    homeMenu->addChild(accountConfig);
+    homeMenu->addChild(WIFIConfig);
+    homeMenu->addChild(exitButton);
+    homeMenu->setSelectedIndex(0);
+
+    home->addChild(homeMenu);
+    home->setSelectedIndex(0);
+    homeMenu->setState(UIState::SELECTED);
+
+    this->screens["home"] = home;
+}
+
+void Config::createWifiDataScreen(){
+    this->wifiData = new UIScreen();
+
+    UIMenu* wifiMenu = new UIMenu(
+        "wifiMenu",
+        80,
+        20,
+        emptyStyle,
+        emptyStyle,
+        emptyStyle,
+        1,
+        0,
+        0,
+        false
+    );
+
+    UIElement* searchWifi = new UIElement("search", 0, 0, button, hoverButton, button);
+    searchWifi->setText("Buscar Redes");
+    searchWifi->setAction(BTN_A, [this](UIElement* element) { Serial.println("IR WIFI LIST"); _screen->changeScreen(wifiList); });
+
+    UIElement* exit = new UIElement("exit", 0, 30, button, hoverButton, button);
+    exit->setText("Voltar"); 
+    exit->setAction(BTN_A, [this](UIElement* element) { Serial.println("IR HOME"); _screen->changeScreen(home); });
+
+    wifiMenu->addChild(searchWifi);
+    wifiMenu->addChild(exit);
+    wifiMenu->setSelectedIndex(0);
+
+    wifiData->addChild(wifiMenu);
+    wifiData->setSelectedIndex(0);
+    wifiMenu->setState(UIState::SELECTED);
+    this->screens["wifiData"] = wifiData;
+}
+void Config::createWifiListScreen(){
+    this->wifiList = new UIScreen();
+
+    UIMenu* listMenu = new UIMenu("listMenu", 80, 200, emptyStyle, emptyStyle, emptyStyle, 1, 0, 0, false);
+
+    std::vector<String> networks = WifiManager::getInstance()->GetAvaliableWifis();
+    for(String s : networks){
+        Serial.println(s);
+    }
+
+    UIElement* exit = new UIElement("exit", 0, 0, button, hoverButton, button);
+    exit->setText("Voltar"); 
+    exit->setAction(BTN_A, [this](UIElement* element) { Serial.println("IR WIFIDATA"); _screen->changeScreen(wifiData); });
+
+    listMenu->addChild(exit);
+    listMenu->setSelectedIndex(0);
+    listMenu->setState(UIState::SELECTED);
+
+    wifiList->addChild(listMenu);
+    wifiList->setSelectedIndex(0);
+    listMenu->setState(UIState::SELECTED);
+    this->screens["wifiList"] = wifiList;
+}
+
+void Config::createDataAccountScreen(){
+   this->dataAccount = new UIScreen();
+
+    UIMenu* accountMenu = new UIMenu("accountMenu", 80, 50, emptyStyle, emptyStyle, emptyStyle, 1, 0, 0, false);
+
+    UIElement* loginBtn = new UIElement("loginBtn", 0, 0, button, hoverButton, button);
+    loginBtn->setText("Login");
+    loginBtn->setAction(BTN_A, [this](UIElement* element) { Serial.println("IR LOGIN"); _screen->changeScreen(loginAccount); });
+
+    UIElement* registerBtn = new UIElement("registerBtn", 0, 30, button, hoverButton, button);
+    registerBtn->setText("Registrar");
+    registerBtn->setAction(BTN_A, [this](UIElement* element) { Serial.println("IR REGISTER"); _screen->changeScreen(registerAccount); });
+
+    UIElement* exit = new UIElement("exit", 0, 60, button, hoverButton, button);
+    exit->setText("Voltar"); 
+    exit->setAction(BTN_A, [this](UIElement* element) { Serial.println("IR HOME"); _screen->changeScreen(home); });
+
+    accountMenu->addChild(loginBtn);
+    accountMenu->addChild(registerBtn);
+    accountMenu->addChild(exit);
+    accountMenu->setSelectedIndex(0);
+    accountMenu->setState(UIState::SELECTED);
+
+    dataAccount->addChild(accountMenu);
+    dataAccount->setSelectedIndex(0);
+    accountMenu->setState(UIState::SELECTED);
+    this->screens["dataAccount"] = dataAccount;
+}
+void Config::createLoginAccountScreen(){
+    this->loginAccount = new UIScreen();
+
+    UIMenu* loginFormMenu = new UIMenu("loginFormMenu", 80, 50, emptyStyle, emptyStyle, emptyStyle, 1, 4, 0, false);
+    
+    UIElement* userLabel = new UIElement("userLabel", 100, 40, text, text,text);
+    userLabel->setText("User:");
+    UIElement* userField = new UIElement("userField", 0, 0, field, hoverField, field);
+
+    UIElement* passwordLabel = new UIElement("passLabel", 100, 80, text, text,text);
+    passwordLabel->setText("Senha:");
+    UIElement* passField = new UIElement("passField", 0, 40, field, hoverField, field);
+
+    UIElement* loginConfirm = new UIElement("confirm", 0, 65, button, hoverButton, button);
+    loginConfirm->setText("Entrar");
+
+    UIElement* exit = new UIElement("exit", 0, 90, button, hoverButton, button);
+    exit->setText("Voltar");
+
+    loginFormMenu->addChild(userField);
+    loginFormMenu->addChild(passField);
+    loginFormMenu->addChild(loginConfirm);
+    loginFormMenu->addChild(exit);
+
+    UIKeyboard* keypad = new UIKeyboard("userKeyb", 0, 0);
+
+    userField->setAction(BTN_A, [this,loginFormMenu, keypad](UIElement* element) {
+        loginFormMenu->setState(UIState::BASE); 
+        keypad->toggle(true);
+        keypad->getChild("visualizer")->setText(element->getText());
+        this->loginAccount->setSelectedIndex(keypad->index); 
+        keypad->getChild("keyboard")->setState(UIState::SELECTED);
+
+        keypad->onClose([loginFormMenu, element](String typedText) {
+            if(typedText.length() > 0) element->setText(typedText);
+            loginFormMenu->getScreen()->setSelectedIndex(loginFormMenu->index);        
+            loginFormMenu->setState(UIState::SELECTED);
+        });
+    });
+
+    passField->setAction(BTN_A, [this,loginFormMenu, keypad](UIElement* element) {
+        loginFormMenu->setState(UIState::BASE); 
+        keypad->toggle(true);
+        keypad->getChild("visualizer")->setText(element->getText());
+        this->loginAccount->setSelectedIndex(keypad->index); 
+        keypad->getChild("keyboard")->setState(UIState::SELECTED);
+
+        keypad->onClose([loginFormMenu, element](String typedText) {
+            if(typedText.length() > 0) element->setText(typedText);
+            loginFormMenu->getScreen()->setSelectedIndex(loginFormMenu->index);        
+            loginFormMenu->setState(UIState::SELECTED);
+        });
+    });
+
+    loginConfirm->setAction(BTN_A, [userField, passField](UIElement* element) {
+        String username = userField->getText();
+        String password = passField->getText();
+        Serial.print("Tentativa Login -> Usr: "); Serial.print(username); Serial.print(" | Pwd: "); Serial.println(password);
+    });
+
+    exit->setAction(BTN_A, [this](UIElement* element) { 
+        Serial.println("VOLTAR CONTA"); 
+        _screen->changeScreen(dataAccount); 
+    });
+
+    loginAccount->addChild(loginFormMenu);
+    loginAccount->addChild(keypad);
+    loginAccount->addChild(userLabel);
+    loginAccount->addChild(passwordLabel);
+
+    loginFormMenu->setSelectedIndex(0);
+    loginAccount->setSelectedIndex(0);
+    loginFormMenu->setState(UIState::SELECTED);
+    
+    this->screens["loginAccount"] = loginAccount;
+}
+void Config::createRegisterAccountScreen(){
+    this->registerAccount = new UIScreen();
+ this->loginAccount = new UIScreen();
+    UIMenu* loginFormMenu = new UIMenu("loginFormMenu", 80, 50, emptyStyle, emptyStyle, emptyStyle, 1, 4, 0, false);
+
+    UIElement* userLabel = new UIElement("userLabel", 100, 40, text, text,text);
+    userLabel->setText("User:");
+    UIElement* userField = new UIElement("userField", 0, 0, field, hoverField, field);
+
+    UIElement* passwordLabel = new UIElement("passLabel", 100, 80, text, text,text);
+    passwordLabel->setText("Senha:");
+    UIElement* passField = new UIElement("passField", 0, 40, field, hoverField, field);
+
+    UIElement* loginConfirm = new UIElement("confirm", 0, 65, button, hoverButton, button);
+    loginConfirm->setText("Criar Conta");
+
+    UIElement* exit = new UIElement("exit", 0, 90, button, hoverButton, button);
+    exit->setText("Voltar");
+
+    loginFormMenu->addChild(userField);
+    loginFormMenu->addChild(passField);
+    loginFormMenu->addChild(loginConfirm);
+    loginFormMenu->addChild(exit);
+
+    UIKeyboard* keypad = new UIKeyboard("userKeyb", 0, 0);
+
+     userField->setAction(BTN_A, [this,loginFormMenu, keypad](UIElement* element) {
+        loginFormMenu->setState(UIState::BASE); 
+        keypad->toggle(true);
+        keypad->getChild("visualizer")->setText(element->getText());
+        this->loginAccount->setSelectedIndex(keypad->index); 
+        keypad->getChild("keyboard")->setState(UIState::SELECTED);
+
+        keypad->onClose([loginFormMenu, element](String typedText) {
+            if(typedText.length() > 0) element->setText(typedText);
+            loginFormMenu->getScreen()->setSelectedIndex(loginFormMenu->index);        
+            loginFormMenu->setState(UIState::SELECTED);
+        });
+    });
+
+    passField->setAction(BTN_A, [this,loginFormMenu, keypad](UIElement* element) {
+        loginFormMenu->setState(UIState::BASE); 
+        keypad->toggle(true);
+        keypad->getChild("visualizer")->setText(element->getText());
+        this->loginAccount->setSelectedIndex(keypad->index); 
+        keypad->getChild("keyboard")->setState(UIState::SELECTED);
+
+        keypad->onClose([loginFormMenu, element](String typedText) {
+            if(typedText.length() > 0) element->setText(typedText);
+            loginFormMenu->getScreen()->setSelectedIndex(loginFormMenu->index);        
+            loginFormMenu->setState(UIState::SELECTED);
+        });
+    });
+
+    loginConfirm->setAction(BTN_A, [userField, passField](UIElement* element) {
+        String username = userField->getText();
+        String password = passField->getText();
+        Serial.print("Tentativa Login -> Usr: "); Serial.print(username); Serial.print(" | Pwd: "); Serial.println(password);
+    });
+
+    exit->setAction(BTN_A, [this](UIElement* element) { 
+        Serial.println("VOLTAR CONTA"); 
+        _screen->changeScreen(dataAccount); 
+    });
+
+    registerAccount->addChild(loginFormMenu);
+    registerAccount->addChild(keypad);
+    registerAccount->addChild(userLabel);
+    registerAccount->addChild(passwordLabel);
+
+    loginFormMenu->setSelectedIndex(0);
+    registerAccount->setSelectedIndex(0);
+    loginFormMenu->setState(UIState::SELECTED);
+    
+    this->screens["registerAccount"] = registerAccount;
+}
+
+
+void Config::loop() {
+    _screen->render();
+    
+}
+void Config::stop() {
+    for (std::pair<std::string, UIScreen *> c : this->screens){delete c.second;}
+    this->screens.clear();
+    
+    Serial.println("stop");
+}

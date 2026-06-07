@@ -1,53 +1,151 @@
 #include "Activities/Menu.h"
+#include "ActivityManager.h"
 #include <DisplayManager.h>
-
+#include "Assets.h"
 
 Menu::Menu() 
     : Activity("menu", nullptr) {}
 void Menu::setup() {
-    int y = 0;
-    int16_t squareSize = 60;
 
-    UIStyle squareStyle = {
-        squareSize, 
-        squareSize, 
-        GC9A01A_RED,
-        nullptr,
-        1,
+    this->curApp = 0;
+    loadActivities();
+
+    UIScreen* screen1 = new UIScreen();
+    screen1->backgroundColor = GC9A01A_WHITE;
+    
+    UIStyle frameStyle = {
+        240,
+        240,
+        0,
+        GC9A01A_WHITE,
+        false,
+        &frame,
+        0,
         0,0,
         0,0,
         GC9A01A_BLACK,
         1
     };
 
-    UIScreen* screen1 = new UIScreen();
-    
-    UIElement* square = new UIElement(
-        "square", 
-        90, 
-        y, 
-        squareStyle, 
-        squareStyle, 
-        squareStyle);
-    
-    screen1->addChild(square);
+    UIStyle textStyle = {
+        110,20,
+        0,
+        0,
+        true,
+        nullptr,
+        0,
+        0,0,
+        0,0,
+        COLOR_TEXT_MINT,
+        2,
+        TextAlign::CENTER
+    };
 
-    UIElement* square2 = new UIElement(
-        "square2", 
-        90, 
-        y, 
-        squareStyle, 
-        squareStyle, 
-        squareStyle);
+    UIStyle mainAppStyle = {
+        104,104,
+        52,
+        COLOR_APP_GRAY,
+        false,
+        nullptr,
+        0,
+        0,
+        0,
+        0,
+        0,
+        GC9A01A_BLACK,
+        1
+    };
+
+    UIStyle sideAppStyle = {
+        52,
+        52,
+        26,
+        COLOR_APP_GRAY,
+        false,
+        nullptr,
+        0,
+        0,0,
+        0,0,
+        GC9A01A_BLACK,
+        1
+    };
+
+    UIElement* frame = new UIElement(
+        "frame",
+        0,
+        0,
+        frameStyle,
+        frameStyle,
+        frameStyle
+    );
+    screen1->addChild(frame);
+
+    mainApp = new UIElement(
+        "mainApp",
+        68,
+        68,
+        mainAppStyle,
+        mainAppStyle,
+        mainAppStyle
+    );
+    frame->addChild(mainApp);
     
-    screen1->addChild(square2);
+    appName = new UIElement(
+        "appName",
+        65,
+        210,
+        textStyle,
+        textStyle,
+        textStyle
+    );
+    appName->setText(activities[curApp]->name);
+    frame->addChild(appName);
+
+    if(activities.size() > 1){
+        leftApp = new UIElement(
+            "leftApp",
+            9,
+            94,
+            sideAppStyle,
+            sideAppStyle,
+            sideAppStyle
+        );
+        rightApp = new UIElement(
+            "rightApp",
+            179,
+            94,
+            sideAppStyle,
+            sideAppStyle,
+            sideAppStyle
+        );
+        frame->addChild(leftApp);
+        frame->addChild(rightApp);
+    }
+
+
+    frame->setAction(BTN_A, [this](UIElement* element){ActivityManager::getInstance()->setActivity(this->activities[this->curApp]->name);});
+    frame->setAction(BTN_LEFT, [this](UIElement* element){
+        if(this->curApp-1 < 0){this->curApp = this->activities.size()-1;}
+        else{this->curApp -= 1;}
+        this->appName->setText(this->activities[this->curApp]->name);
+    });
+    frame->setAction(BTN_RIGHT, [this](UIElement* element){
+        if(this->curApp+1 >= this->activities.size()){this->curApp = 0;}
+        else{this->curApp += 1;}
+        this->appName->setText(this->activities[this->curApp]->name);
+    });
+
     _screen->changeScreen(screen1);
+};
+void Menu::loadActivities(){
+    this->activities = ActivityManager::getInstance()->getActivities();
 }
-void Menu::loop() {
 
+
+
+void Menu::loop() {
     _screen->render();
     
-    delay(FRAME_DELAY);
 }
 void Menu::stop() {
     for (std::pair<std::string, UIScreen *> c : this->screens){delete c.second;}

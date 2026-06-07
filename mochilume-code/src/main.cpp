@@ -3,22 +3,22 @@
 #include "DisplayManager.h"
 #include "ActivityManager.h"
 #include "InputManager.h"
-#include "Test.h"
 #include "Activities/Menu.h"
 #include "Activities/Config.h"
 #include "Activities/Mochilume.h"
 #include <WifiManager.h>
+#include <SaveManager.h>
 
 
 DisplayManager* display;
 ScreenManager* screen;
 ActivityManager* activity;
+SaveManager* save;
 InputManager* input;
 WifiManager* wifiManager;
 
-Test* testActivity = nullptr;
 Menu* menuActivity = nullptr;
-// Config* configActivity = nullptr;
+Config* configActivity = nullptr;
 Mochilume* mochilumeActivity = nullptr;
 
 void setup() {
@@ -43,9 +43,10 @@ void setup() {
     screen = ScreenManager::getInstance();
     Serial.println("SCREEN OK");
 
-    testActivity = new Test();
-    activity->registerActivity(testActivity);
-
+    Serial.println("FILES START");
+    save = SaveManager::getInstance();
+    save->begin();
+    Serial.println("FILES OK");
 
     wifiManager = WifiManager::getInstance();
     Serial.println("WIFI OK");
@@ -82,10 +83,8 @@ void setup() {
     }
 
 
-
-
-    // configActivity = new Config();
-    // activity->registerActivity(configActivity);
+    configActivity = new Config();
+    activity->registerActivity(configActivity);
 
     mochilumeActivity = new Mochilume();
     activity->registerActivity(mochilumeActivity);
@@ -93,7 +92,7 @@ void setup() {
     menuActivity = new Menu();
     activity->registerActivity(menuActivity);
     
-    activity->setActivity("test");
+    activity->setActivity("menu");
 
     Serial.println("Mochilume OS: Setup Finalizado.");
 }

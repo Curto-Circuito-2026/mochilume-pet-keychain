@@ -28,7 +28,9 @@ void Test::setup() {
     UIStyle squareStyle = {
         squareSize, 
         squareSize, 
+        0,
         GC9A01A_RED,
+        false,
         nullptr,
         1,
         0,0,
@@ -69,7 +71,6 @@ void Test::loop() {
 
     _screen->render();
     
-    delay(FRAME_DELAY);
 }
 
 void Test::stop() {

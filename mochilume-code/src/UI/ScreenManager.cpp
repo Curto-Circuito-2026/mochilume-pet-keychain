@@ -45,19 +45,23 @@ UIScreen* ScreenManager::getCurScreen(){
 void ScreenManager::render(){
     for (int i : InputManager::getInstance()->inputQueue){
         this->onButtonPress(i);
-        delay(150);
+        delay(75);
         InputManager::getInstance()->inputQueue.pop_front();
     }
 
     if(this->dirty){
         Adafruit_GC9A01A* _tft = DisplayManager::getInstance()->getTFT();
         for(int stripOffset = 0; stripOffset < SCREEN_HEIGHT; stripOffset += SCREEN_STRIP){
-            canvas->fillScreen(GC9A01A_BLACK);
+            canvas->fillScreen(this->curScreen->backgroundColor);
+            if(this->curScreen->backgroundImage != nullptr){
+                canvas->drawRGBBitmap(0, 0, this->curScreen->backgroundImage + (stripOffset * SCREEN_WIDTH), SCREEN_WIDTH, SCREEN_STRIP);}
             if(this->curScreen){ this->curScreen->render(canvas, stripOffset); }
             _tft->drawRGBBitmap(0, stripOffset, canvas->getBuffer(), SCREEN_WIDTH, SCREEN_STRIP);
         }
         this->dirty = false;
     }
+
+    // delay(FRAME_DELAY);
 }
 
 

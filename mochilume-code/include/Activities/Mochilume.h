@@ -32,7 +32,7 @@ struct PetData {
     //id das skills disponiveis por level
     std::map<int, std::vector<int>> skillPool;
 
-    const uint8_t* sprite;
+    const Sprite* sprite;
 
     int evolutionSpecies;
     int evolutionLevel;
@@ -65,6 +65,9 @@ class MochilumePet {
         void changeName(String val);
         void changeSkill(int index, int val);
 
+        int getBaseHP();
+        int getSpecie();
+
         //usar em batalha
         void changeCurHP(int addr);
         void changeCurDEF(int addr);
@@ -89,6 +92,31 @@ class MochilumePet {
 
 };
 
+
+
+enum BattleStatus {
+    PlayerTurn,
+    WaitingEnemy,
+    Resolve,
+    None
+};
+
+struct ShortPetData{
+    int specie;
+    String name;
+    int hp;
+    int maxHP;
+};
+
+struct Battle{
+    BattleStatus status;
+    String seed;
+    ShortPetData enemy;
+    int selectedSkill;
+    int enemySkill;
+    bool isHost;
+};
+
 class Mochilume : public Activity {
 private:
     UIScreen* home;
@@ -98,11 +126,14 @@ private:
 
     MochilumePet* pet;
 
-    bool isBattleHost; //true -> Ativo, calcula as batalhas. false -> passivo, espera receber o resultado
-    int battleState; //0 -> selecionar skills : 1 -> rodando resultado das seleções
-
+    Battle battleInfo;
+    void startBattle(bool host, String seed, ShortPetData enemy);
+    void resolveBattleTurn();
 
     void loadPetData();
+
+    bool hasLoadedBaseData;
+    void loadBaseData();
 
     void createHomeScreen();
     void createStatsScreen();

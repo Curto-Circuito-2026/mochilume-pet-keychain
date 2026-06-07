@@ -11,6 +11,15 @@ ActivityManager::~ActivityManager() {
     this->activityMap.clear();
 }
 
+std::vector<Activity*> ActivityManager::getActivities(){
+    std::vector<Activity*> ret;
+    for(std::pair<std::string, Activity*> p : this->activityMap){
+        Serial.println(p.second->name);
+        if(p.second->name != "menu") ret.push_back(p.second);
+    }
+    return ret;
+}
+
 ActivityManager* ActivityManager::getInstance() {
     if (_instance == nullptr) _instance = new ActivityManager();
     return _instance;

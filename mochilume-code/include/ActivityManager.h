@@ -21,7 +21,7 @@ public:
     Activity* curActivity;
     void setActivity(const char* name);
     void loopActivity();
-    void renderUI();
+    std::vector<Activity*> getActivities();
     void registerActivity(Activity* activity);
 };
 
