@@ -663,7 +663,7 @@ void Mochilume::createBattleScreen(){
         sb->setText(allSkills[sk].name);
 
         sb->setAction(BTN_A, [this, sk](UIElement* element){
-            if(this->battleInfo.status == BattleStatus::PlayerTurn){
+            if(this->battleInfo.status == BattleStatus::PlayerTurn && this->battleInfo.selectedSkill == -1){
                 this->battleInfo.selectedSkill = sk;
                 if(battleInfo.isHost){
                     if(this->battleInfo.enemySkill == -1){
@@ -1081,11 +1081,13 @@ void Mochilume::battleSelectionLoop(){
         if(packet.type == BATTLE_INVITE){
             ShortPetData petShort = LoraManager::getInstance()->handlePacket<ShortPetData>(packet);
             LoraManager::getInstance()->connect(packet.source);
+            Serial.println("Received battle invite from " + packet.source);
             this->battleSelect->getChild("acceptMessage")->setVisibility(true);
             this->battleSelect->getChild("menu")->setState(UIState::BASE);
             this->battleSelect->setSelectedIndex(1);
             this->battleSelect->getChild("acceptMessage")->setSelectedIndex(0);
             this->battleSelect->getChild("acceptMessage")->getChild("acceptMenu")->setState(UIState::SELECTED);
+            this->battleSelect->getChild("acceptMessage")->getChild("acceptText")->setText("Aceitar desafio de batalha de " + packet.source);
             this->battleInfo.enemy = petShort;
             this->battleInfo.isHost = false;
            

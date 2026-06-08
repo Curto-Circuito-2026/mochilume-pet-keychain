@@ -128,7 +128,7 @@ class LoraManager {
             
             String packetOutput;
             serializeJson(packetDoc, packetOutput);
-            
+            Serial.println("Sending packet: " + packetOutput);
             if (radio != nullptr) {
                 radio->transmit(packetOutput);
                 radio->startReceive();
