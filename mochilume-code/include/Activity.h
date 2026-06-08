@@ -21,9 +21,9 @@ class Activity {
         
     public: 
         const char* name;
-        const uint8_t* icon;
+        const Sprite* icon;
 
-        Activity(const char* name, const uint8_t* icon);
+        Activity(const char* name, const Sprite* icon);
         virtual ~Activity() {};
         
         virtual void setup() = 0;

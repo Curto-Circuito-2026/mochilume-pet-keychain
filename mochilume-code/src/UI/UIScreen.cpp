@@ -35,6 +35,10 @@ void UIScreen::setVisibility(bool visible){
 
 }
 
+void UIScreen::setSelectedIndexByName(std::string name) {
+    setSelectedIndex(elements[name]->getIndex());
+}
+
 void UIScreen::setSelectedIndex(uint8_t index){
      if(index == -1){
         if(this->selectedElement){

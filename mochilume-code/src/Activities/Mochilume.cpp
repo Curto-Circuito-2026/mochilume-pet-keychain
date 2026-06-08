@@ -151,14 +151,14 @@ UIStyle squareStyle = {
 
 std::map<int, PetData> petInfoMap = {
     {1, {"Sapomba", 10, 10, 10, 10, {
-        {1, {1,2,3,4,5,6,7,8,9,10}},
+        {1, {1,2,3,4,5,6,7,8}},
         {2, {}},
         {3, {}},
         {4, {}},
         {5, {}},
     }, &pet_1, -1, -1}},
-    {1, {"Porcaria", 10, 10, 10, 10, {
-        {1, {1,2,3,4,5,6,7,8,9,10}},
+    {2, {"Porcaria", 10, 10, 10, 10, {
+        {1, {1,2,3,4,5,6,7,8}},
         {2, {}},
         {3, {}},
         {4, {}},
@@ -168,17 +168,17 @@ std::map<int, PetData> petInfoMap = {
 };
 
 std::map<int, MochilumeSkill> allSkills = {
-    {1, {"Mordida", SkillTarget::OTHER, StatType::HP, 10}},
-    {2, {"Cabeçada", SkillTarget::OTHER, StatType::HP, 10}},
-    {3, {"Bandagem", SkillTarget::SELF, StatType::HP, 10}},
+    {1, {"Mordida", "Morde o oponente", SkillTarget::OTHER, StatType::HP, 10}},
+    {2, {"Bandagem", "Se cura", SkillTarget::SELF, StatType::HP, 10}},
 
-    {4, {"test3", SkillTarget::OTHER, StatType::HP, 10}},
-    {5, {"test4", SkillTarget::OTHER, StatType::HP, 10}},
-    {6, {"test5", SkillTarget::OTHER, StatType::HP, 10}},
-    {7, {"test6", SkillTarget::OTHER, StatType::HP, 10}},
-    {8, {"test7", SkillTarget::OTHER, StatType::HP, 10}},
-    {9, {"test8", SkillTarget::OTHER, StatType::HP, 10}},
-    {10,{"test9", SkillTarget::OTHER, StatType::HP, 10}},
+    {3, {"Velocidade", "Aumenta sua velocidade", SkillTarget::SELF, StatType::SPD, 5}},
+    {4, {"Lentidao", "Diminui a velocidade do oponente", SkillTarget::OTHER, StatType::SPD, 5}},
+
+    {5, {"Carapaca", "Aumenta sua defesa", SkillTarget::SELF, StatType::DEF, 5}},
+    {6, {"Estilhaco", "Diminui a defesa do oponente", SkillTarget::OTHER, StatType::DEF, 5}},
+
+    {7, {"Fraqueza", "Diminui a forca do oponente", SkillTarget::OTHER, StatType::ATK, 5}},
+    {8, {"Forca", "Aumenta sua forca", SkillTarget::SELF, StatType::ATK, 5}},
 };
 
 int MochilumePet::getBaseHP(){
@@ -287,7 +287,7 @@ std::vector<int> MochilumePet::getSkillPool(){
 //APP
 
 Mochilume::Mochilume() 
-    : Activity("mochilume", nullptr) {}
+    : Activity("mochilume", &mochilume_logo) {}
 void Mochilume::setup() {
     this->loadBaseData();
 
@@ -389,7 +389,7 @@ void Mochilume::createStatsScreen(){
     
     if(this->pet != nullptr){
         exit->setAction(BTN_RIGHT, [this](UIElement* element) { 
-            element->getScreen()->setSelectedIndex(1);
+            element->getScreen()->setSelectedIndexByName("menu");
             element->getScreen()->getChild("menu")->setState(UIState::SELECTED);
         });
         
@@ -404,22 +404,25 @@ void Mochilume::createStatsScreen(){
         0,
         true);
 
-        skillMenu->setAction(BTN_LEFT, [this](UIElement* element) { element->getScreen()->setSelectedIndex(0); element->setState(UIState::BASE);});
-        skillMenu->setAction(BTN_RIGHT, [this](UIElement* element) { element->getScreen()->setSelectedIndex(0); element->setState(UIState::BASE);});
+        skillMenu->setAction(BTN_LEFT, [this](UIElement* element) { element->getScreen()->setSelectedIndexByName("exit"); element->setState(UIState::BASE); 
+            if(this->stats->getChild("skDesc") != nullptr) this->stats->getChild("skDesc")->setText("");});
+        skillMenu->setAction(BTN_RIGHT, [this](UIElement* element) { element->getScreen()->setSelectedIndexByName("exit"); element->setState(UIState::BASE); 
+            if(this->stats->getChild("skDesc") != nullptr) this->stats->getChild("skDesc")->setText("");});
+
 
         UIElement* name = new UIElement("name", 120, 5, text, selectedText, text);
         name->setText(this->pet->name);
 
-        exit->setAction(BTN_UP, [this](UIElement* element) {element->getScreen()->setSelectedIndex(2);});
+        exit->setAction(BTN_UP, [this](UIElement* element) {element->getScreen()->setSelectedIndexByName("name");});
 
-        name->setAction(BTN_DOWN, [this](UIElement* element) {element->getScreen()->setSelectedIndex(0);});
+        name->setAction(BTN_DOWN, [this](UIElement* element) {element->getScreen()->setSelectedIndexByName("exit");});
         name->setAction(BTN_RIGHT, [this](UIElement* element) { 
-            element->getScreen()->setSelectedIndex(1);
+            element->getScreen()->setSelectedIndexByName("menu");
             element->getScreen()->getChild("menu")->setState(UIState::SELECTED);
         });
         name->setAction(BTN_A, [this](UIElement* element) {
             element->getScreen()->getChild("input")->setVisibility(true);
-            element->getScreen()->setSelectedIndex(3);
+            element->getScreen()->setSelectedIndexByName("input");
             element->getScreen()->getChild("input")->setSelectedIndex(0);
         });
 
@@ -427,15 +430,17 @@ void Mochilume::createStatsScreen(){
         UIElement* inputContainer = new UIElement("input", 0, 0, backdrop,backdrop,backdrop);
         UIInput* nameInput = new UIInput("nameInput", 40, 105, 10, this->pet->name);
         inputContainer->addChild(nameInput);
-        inputContainer->setAction(BTN_B, [this, nameInput](UIElement* element) {
+        inputContainer->setAction(BTN_B, [this, nameInput, name](UIElement* element) {
             element->getScreen()->getChild("input")->setVisibility(false);
-            element->getScreen()->setSelectedIndex(2);
+            element->getScreen()->setSelectedIndexByName("exit");
             nameInput->setValue(this->pet->name);
         });
-        inputContainer->setAction(BTN_A, [this, nameInput](UIElement* element) {
+        inputContainer->setAction(BTN_A, [this, nameInput, name](UIElement* element) {
             element->getScreen()->getChild("input")->setVisibility(false);
-            element->getScreen()->setSelectedIndex(2);
+            element->getScreen()->setSelectedIndexByName("exit");
             this->pet->changeName(nameInput->getValue());
+            name->setText(nameInput->getValue());
+            
         });
 
         for(int i = 0; i< this->pet->getSkillPool().size(); i++){
@@ -458,7 +463,11 @@ void Mochilume::createStatsScreen(){
                 }
             }
 
-            
+            sB->onHover = [this, skillId](UIElement* element){
+                UIElement* skdesc  = this->stats->getChild("skDesc");
+                if(skdesc != nullptr)skdesc->setText(allSkills[skillId].desc);
+            };
+
             sB->setAction(BTN_A, [this, skillId](UIElement* element) { 
                 int index = -1;
                 int slotIndex = -1;
@@ -554,9 +563,12 @@ void Mochilume::createStatsScreen(){
         skill4->setText(this->pet->skills[3] > 0 ? allSkills[this->pet->skills[3]].name : "S/E");
         stats->addChild(skill4);
 
-        
+
 
     }
+    UIElement* skDesc = new UIElement("skDesc", 100, 150, leftText, leftText, leftText);
+    stats->addChild(skDesc);
+        
     this->screens["stats"] = stats;
 }
 

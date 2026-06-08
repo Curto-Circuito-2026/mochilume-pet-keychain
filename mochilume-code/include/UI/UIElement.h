@@ -36,12 +36,17 @@ protected:
     
     bool disabled;
 
+
+
     std::map<uint8_t, std::function<void(UIElement*)>> actions;
 public:
     std::string id;
     uint8_t index;
     UIElement(std::string id, int16_t x, int16_t y, UIStyle style, UIStyle hoverStyle, UIStyle selectedStyle);
     ~UIElement();
+
+    std::function<void(UIElement*)> onHover;
+    std::function<void(UIElement*)> offHover;
 
     void setState(UIState state);
     UIState getState();
@@ -52,7 +57,9 @@ public:
     UIScreen* getScreen();
 
     void setSelectedIndex(uint8_t index);
-
+    int getIndex();
+    void setSelectedIndexByName(std::string name);
+    
     void setParent(UIElement* parent);
     void setScreen(UIScreen* screen);
 

@@ -110,6 +110,21 @@ static const UIStyle text = {
     TextAlign::CENTER
 
 };
+static const UIStyle leftText = {
+    0,0,
+    0,
+    0,
+    true,
+    nullptr,
+    1,
+    0,0,
+    0,1,
+    COLOR_TEXT_MINT,
+    1,
+    TextAlign::LEFT
+
+};
+
 static const UIStyle backdrop = {
     240,240,
     0,

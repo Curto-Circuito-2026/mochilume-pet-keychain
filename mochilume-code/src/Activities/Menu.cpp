@@ -46,7 +46,7 @@ void Menu::setup() {
         52,
         COLOR_APP_GRAY,
         false,
-        nullptr,
+        activities[curApp]->icon,
         0,
         0,
         0,
@@ -128,13 +128,44 @@ void Menu::setup() {
         if(this->curApp-1 < 0){this->curApp = this->activities.size()-1;}
         else{this->curApp -= 1;}
         this->appName->setText(this->activities[this->curApp]->name);
+        UIStyle nL= {    104,104,
+            52,
+            COLOR_APP_GRAY,
+            false,
+            this->activities[this->curApp]->icon,
+            0,
+            0,
+            0,
+            0,
+            0,
+            GC9A01A_BLACK,
+            1};
+        this->mainApp->setBaseStyle(nL);
+        this->mainApp->setHoverStyle(nL);
+        this->mainApp->setSelectedStyle(nL);
     });
     frame->setAction(BTN_RIGHT, [this](UIElement* element){
         if(this->curApp+1 >= this->activities.size()){this->curApp = 0;}
         else{this->curApp += 1;}
         this->appName->setText(this->activities[this->curApp]->name);
+        UIStyle nL= {    104,104,
+            52,
+            COLOR_APP_GRAY,
+            false,
+            this->activities[this->curApp]->icon,
+            0,
+            0,
+            0,
+            0,
+            0,
+            GC9A01A_BLACK,
+            1};
+        this->mainApp->setBaseStyle(nL);
+        this->mainApp->setHoverStyle(nL);
+        this->mainApp->setSelectedStyle(nL);
     });
 
+    screen1->setSelectedIndex(0);
     _screen->changeScreen(screen1);
 };
 void Menu::loadActivities(){

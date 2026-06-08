@@ -8,6 +8,7 @@
 
 struct MochilumeSkill {
     String name;
+    String desc;
     SkillTarget target;
     StatType stat;
     int value;

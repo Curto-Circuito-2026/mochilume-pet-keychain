@@ -7,7 +7,7 @@
 #include "WifiManager.h"
 
 Config::Config() 
-    : Activity("config", nullptr) {}
+    : Activity("config", &config_logo) {}
 void Config::setup() {
     this->createHomeScreen();
     this->createWifiDataScreen();

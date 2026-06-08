@@ -25,6 +25,7 @@ public:
     UIElement* getChild(std::string id);
     void addChild(UIElement* child);
 
+    void setSelectedIndexByName(std::string name);
     void setSelectedIndex(uint8_t index);
 
     void setVisibility(bool visible);

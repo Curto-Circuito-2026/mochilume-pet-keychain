@@ -21,6 +21,9 @@ UIElement::UIElement(std::string id, int16_t x, int16_t y, UIStyle style, UIStyl
     this->selectedStyle = selectedStyle;
     this->disabled = false;
     this->wrapIndex = true;
+
+    this->onHover = nullptr;
+    this->offHover = nullptr;
 }
 UIElement::~UIElement(){
     for (std::pair<std::string, UIElement *> c : this->children){delete c.second;}
@@ -48,6 +51,14 @@ void UIElement::setText(String text){
 }
 
 void UIElement::setState(UIState state) {
+    if(state == UIState::HOVERED){
+        if(this->onHover){  
+            this->onHover(this);
+        }
+    }
+    if(state == UIState::BASE && this->state == UIState::HOVERED){
+        if(this->offHover){this->offHover(this);}
+    }
     this->state = state;
     ScreenManager::getInstance()->setDirtyFlag(true);
 }
@@ -77,6 +88,13 @@ String UIElement::getText(){
     return this->text;
 }
 
+int UIElement::getIndex(){
+    return this->index;
+}
+
+void UIElement::setSelectedIndexByName(std::string name) {
+    setSelectedIndex(children[name]->getIndex());
+}
 void UIElement::setSelectedIndex(uint8_t index){
     if(this->children.size() == 0){return;}
     Serial.print("INDICE ESCOLHIDO: ");
