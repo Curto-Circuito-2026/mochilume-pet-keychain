@@ -809,13 +809,14 @@ BattleAction createBattleAction(String casterName, String targetName, MochilumeS
         case StatType::SPD:
         result += "SPD";
         break;
-         if(skill.target == SkillTarget::SELF){
-            result += "Do " + casterName + " aumentou" ;
-        }else{
-            result += "Do " + targetName + " foi reduzido" ;
-        }
-        result += " em " +String(skill.value);
+        
     }
+    if(skill.target == SkillTarget::SELF){
+        result += "Do " + casterName + " aumentou" ;
+    }else{
+        result += "Do " + targetName + " foi reduzido" ;
+    }
+    result += " em " +String(skill.value);
     int value = skill.value;
 
     return BattleAction{
@@ -879,6 +880,7 @@ void Mochilume::passBattleActions(std::vector<BattleAction> actions){
                 }
                 this->battle->getChild("player")->getChild("hp")->setText(String(this->pet->curHP) + "/" + String(this->pet->getBaseHP()));
                 this->battle->getChild("enemy")->getChild("hp")->setText(String(this->battleInfo.enemy.curHP) + "/" + String(this->battleInfo.enemy.maxHP));
+            break;
             case StatType::ATK:
                 if(action.target == SkillTarget::SELF){
                     if(action.isHost == battleInfo.isHost){
@@ -893,6 +895,7 @@ void Mochilume::passBattleActions(std::vector<BattleAction> actions){
                         this->pet->curATK -= action.value;
                     }
                 }
+            break;
             case StatType::DEF:
                 if(action.target == SkillTarget::SELF){
                     if(action.isHost == battleInfo.isHost){
@@ -901,6 +904,7 @@ void Mochilume::passBattleActions(std::vector<BattleAction> actions){
                         this->battleInfo.enemy.curDEF += action.value;
                     }
                 }
+            break;
             case StatType::SPD:
                 if(action.target == SkillTarget::SELF){
                     if(action.isHost == battleInfo.isHost){
@@ -909,6 +913,7 @@ void Mochilume::passBattleActions(std::vector<BattleAction> actions){
                         this->battleInfo.enemy.curSPD += action.value;
                     }
                 }
+            break;
         }
 
         delay(300);
@@ -1097,9 +1102,9 @@ void Mochilume::battleLoop(){
         Serial.println("Packet received: " + String(packet.type) + " from " + packet.source);
         Serial.println(battleInfo.isHost);
         if(packet.type == BATTLE_SKILL && battleInfo.isHost){
-            int enemySkill = LoraManager::getInstance()->handlePacket<int>(packet);
-            battleInfo.enemySkill = enemySkill;
-            Serial.println("Enemy skill selected: " + String(enemySkill));
+            BattleSkillModel enemySkill = LoraManager::getInstance()->handlePacket<BattleSkillModel>(packet);
+            battleInfo.enemySkill = enemySkill.skillID;
+            Serial.println("Enemy skill selected: " + String(enemySkill.skillID));
             if(battleInfo.selectedSkill != -1){
                 this->resolveBattleTurn();
                 
