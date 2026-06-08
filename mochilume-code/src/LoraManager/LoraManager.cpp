@@ -19,14 +19,14 @@ bool LoraManager::isConnected() {
 void LoraManager::disconnect() {
     connection.isConnected = false;
     connection.destinationID = "0";
+    pendingPackets.clear();
 }
 
 std::vector<Packet> LoraManager::getPackets() {
     std::vector<Packet> packets;
-    for(int i = 0; i < packetQueue.size(); i++) {
-        Packet p = packetQueue.front();
+    while (!packetQueue.empty()) {
+        packets.push_back(packetQueue.front());
         packetQueue.pop();
-        packets.push_back(p);
     }
     return packets;
 }
@@ -57,24 +57,79 @@ void LoraManager::loop()
         loraInterruptTriggered = false;
         String str;
         radio->readData(str);
-        JsonDocument doc;
-        deserializeJson(doc, str);
-        Packet packet;
-        packet.model = doc["model"].as<String>();       
-        packet.source = doc["source"].as<String>();  
-        if(packet.source == "0" || packet.source == "null") {error = true;}
-        if(packet.source == connection.sourceID) {error = true;}
-        packet.destination = doc["destination"].as<String>();     
-        packet.type = static_cast<PacketType>(doc["type"].as<int>());
-        if(packet.destination == "0" || packet.destination == connection.sourceID) {connection.timer = millis();}
-        if(connection.isConnected && packet.source != connection.destinationID) {error = true;}
 
-        if(!error){packetQueue.push(packet);}
+        JsonDocument doc;
+        DeserializationError jsonErr = deserializeJson(doc, str);
+
+        if(!jsonErr){
+            if (doc.containsKey("ackId")) {
+                String ackId = doc["ackId"].as<String>();
+                for (auto it = pendingPackets.begin(); it != pendingPackets.end(); ) {
+                    if (it->msgId == ackId) {
+                        it = pendingPackets.erase(it);
+                        Serial.println("System: Packet Delivery Confirmed for ID: " + ackId);
+                    } else {
+                        ++it;
+                    }
+                }
+                
+                error = true; 
+            }
+            else if(doc.containsKey("msgId")){
+                String msgId = doc["msgId"].as<String>();
+                
+                JsonDocument ackDoc;
+                ackDoc["source"] = connection.sourceID;
+                ackDoc["destination"] = doc["source"].as<String>();
+                ackDoc["type"] = static_cast<int>(PING); 
+                ackDoc["ackId"] = msgId;
+                
+                String ackOutput;
+                serializeJson(ackDoc, ackOutput);
+                if (radio != nullptr) {
+                    delay(50); 
+                    radio->transmit(ackOutput);
+                }
+
+                if (msgId == lastProcessedMsgId) {
+                    Serial.println("System: Dropping duplicate packet.");
+                    error = true; 
+                } else {
+                    lastProcessedMsgId = msgId;
+                }
+            }
+        
+
+            Packet packet;
+            if(doc.containsKey("model")){
+                packet.model = doc["model"].as<String>();       
+            }
+            packet.source = doc["source"].as<String>();  
+            if(packet.source == "0" || packet.source == "null" || packet.source == connection.sourceID) {error = true;}
+            packet.destination = doc["destination"].as<String>();     
+            packet.type = static_cast<PacketType>(doc["type"].as<int>());
+            if(packet.destination == "0" || packet.destination == connection.sourceID) {connection.timer = millis();}
+            if(connection.isConnected && packet.source != connection.destinationID) {error = true;}
+
+            if(!error){packetQueue.push(packet);}
+        }
         radio->startReceive();
     }
+
+    for (auto& packet : pendingPackets) {
+        if (packet.active && (millis() - packet.lastSent > 1200)) {
+            Serial.println("System: Resending unacknowledged packet ID: " + packet.msgId);
+            if(radio != nullptr) {
+                radio->transmit(packet.payload);
+                radio->startReceive();
+            }
+            packet.lastSent = millis();
+        }
+        
+    }
+    
     if(connection.isConnected && (millis() - connection.timer > LORA_CONNECTION_TIMEOUT)) {
-        connection.isConnected = false;
-        connection.destinationID = "0";
+        this->disconnect();
     }
 }
 LoraManager* LoraManager::getInstance() {

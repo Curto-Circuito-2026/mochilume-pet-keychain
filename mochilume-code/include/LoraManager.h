@@ -20,6 +20,13 @@ struct LoraConnection {
     bool isConnected;
 };
 
+struct PendingPacket {
+    String payload;
+    unsigned long lastSent;
+    String msgId;
+    bool active = false;
+};
+
 
 class LoraManager {
     private:
@@ -29,6 +36,9 @@ class LoraManager {
         SPIClass hspi;
         LoraConnection connection;
         std::queue<Packet> packetQueue;
+
+        std::vector<PendingPacket> pendingPackets;
+        String lastProcessedMsgId = "";
     public:
         static LoraManager* getInstance();
 
@@ -124,6 +134,12 @@ class LoraManager {
             packetDoc["destination"] = packet.destination;
             packetDoc["type"] = static_cast<int>(packet.type);
             packetDoc["model"] = packet.model;
+
+            bool requiresAck = (type != PING && type != PONG);
+            String msgId = String(millis()) + String(random(10, 99)); 
+            if (requiresAck) {
+                packetDoc["msgId"] = msgId;
+            }
             
             String packetOutput;
             serializeJson(packetDoc, packetOutput);
@@ -131,6 +147,15 @@ class LoraManager {
             if (radio != nullptr) {
                 radio->transmit(packetOutput);
                 radio->startReceive();
+            }
+
+            if (requiresAck) {
+                PendingPacket p;
+                p.payload = packetOutput;
+                p.msgId = msgId;
+                p.lastSent = millis();
+                p.active = true;
+                pendingPackets.push_back(p);
             }
         };
         void loop();
@@ -212,7 +237,6 @@ class LoraManager {
                     break;
             }
             
-            // 3. Retorna o container 'T' preenchido de forma disfarçada pelo ponteiro
             return resultContainer; 
         }
 

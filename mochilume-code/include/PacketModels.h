@@ -10,7 +10,7 @@ enum PacketType {
     BATTLE_INVITE,
     BATTLE_START,     // Informação de início de batalha
     BATTLE_SKILL,      // Informação de movimento em batalha 
-    BATTLE_TURN         // Informação de término do round
+    BATTLE_TURN,         // Informação de término do round
 };
 
 struct Packet {
