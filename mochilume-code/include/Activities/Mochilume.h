@@ -99,6 +99,7 @@ struct Battle{
     int selectedSkill;
     int enemySkill;
     bool isHost;
+    bool received = false;
     std::vector<BattleAction> actions;
 };
 

@@ -1100,6 +1100,13 @@ void Mochilume::battleSelectionLoop(){
     
 }
 void Mochilume::battleLoop(){
+    if(this->battleInfo.status == BattleStatus::Resolve && battleInfo.isHost && !battleInfo.received){
+        BattleTurnModel model;
+        model.actions = battleInfo.actions;
+        Serial.println("ENVIANDO AÇÕES PARA O OUTRO JOGADOR");
+        LoraManager::getInstance()->sendPacket<BattleTurnModel>(model, BATTLE_TURN);
+    }
+        
     for (Packet packet : LoraManager::getInstance()->getPackets()) {
         Serial.println("Packet received: " + String(packet.type) + " from " + packet.source);
         Serial.println(battleInfo.isHost);
@@ -1127,6 +1134,7 @@ void Mochilume::battleLoop(){
             Serial.println("Received confirmation from opponent");
             String msg = LoraManager::getInstance()->handlePacket<String>(packet);
             if(msg == "OK"){
+                this->battleInfo.received = true;
                 passBattleActions(battleInfo.actions);
             }
         }
