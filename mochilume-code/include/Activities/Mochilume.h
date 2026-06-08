@@ -132,7 +132,7 @@ private:
     void battleLoop();
 
     long lastPingTime = 0;
-    const long pingInterval = 2000; // 5 segundos
+    const long pingInterval = 2000; // 2 segundos
 public:
     Mochilume();
 

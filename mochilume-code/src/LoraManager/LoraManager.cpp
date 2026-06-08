@@ -62,11 +62,13 @@ void LoraManager::loop()
         Packet packet;
         packet.model = doc["model"].as<String>();       
         packet.source = doc["source"].as<String>();  
-        if (packet.source == connection.sourceID) {error = true;}  
+        if(packet.source == "0" || packet.source == "null") {error = true;}
+        if(packet.source == connection.sourceID) {error = true;}
         packet.destination = doc["destination"].as<String>();     
         packet.type = static_cast<PacketType>(doc["type"].as<int>());
         if(packet.destination == "0" || packet.destination == connection.sourceID) {connection.timer = millis();}
         if(connection.isConnected && packet.source != connection.destinationID) {error = true;}
+
         if(!error){packetQueue.push(packet);}
         radio->startReceive();
     }

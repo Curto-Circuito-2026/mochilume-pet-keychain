@@ -824,7 +824,7 @@ std::vector<BattleAction> Mochilume::resolveBattleTurn(){
 void Mochilume::passBattleActions(std::vector<BattleAction> actions){
     for(BattleAction action : actions){
         this->battle->getChild("resolve")->setText("acao");
-        delay(500);
+        delay(1000);
         this->battle->getChild("resolve")->setText("result");
 
         switch (action.stat)
@@ -881,10 +881,10 @@ void Mochilume::passBattleActions(std::vector<BattleAction> actions){
             break;
         }
 
-        delay(500);
+        delay(1000);
         this->battle->getChild("resolve")->setText(" ");
     }
-    delay(500);
+    delay(1000);
     this->battle->getChild("resolve")->setText("Selecione uma skill");
     battleInfo.status = BattleStatus::PlayerTurn;
     battleInfo.actions.clear();
@@ -1082,10 +1082,8 @@ void Mochilume::battleLoop(){
             Serial.println("Received battle turn actions");
             BattleTurnModel model = LoraManager::getInstance()->handlePacket<BattleTurnModel>(packet);
             bool ok = true;
-            if(ok){
-                LoraManager::getInstance()->sendPacket<String>("OK", MESSAGE);
-                passBattleActions(model.actions);
-            }
+            delay(200);
+            if(ok){LoraManager::getInstance()->sendPacket<String>("OK", MESSAGE); passBattleActions(model.actions);}
         }
 
         if(packet.type == MESSAGE && battleInfo.isHost){
