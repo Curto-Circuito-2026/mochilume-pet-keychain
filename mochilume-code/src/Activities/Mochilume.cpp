@@ -150,13 +150,21 @@ UIStyle squareStyle = {
 };
 
 std::map<int, PetData> petInfoMap = {
-  {1, {"Sapomba", 10, 10, 10, 10, {
-    {1, {1,2,3,4,5,6,7,8,9,10}},
-    {2, {}},
-    {3, {}},
-    {4, {}},
-    {5, {}},
-}, &pet_1, -1, -1}}  
+    {1, {"Sapomba", 10, 10, 10, 10, {
+        {1, {1,2,3,4,5,6,7,8,9,10}},
+        {2, {}},
+        {3, {}},
+        {4, {}},
+        {5, {}},
+    }, &pet_1, -1, -1}},
+    {1, {"Porcaria", 10, 10, 10, 10, {
+        {1, {1,2,3,4,5,6,7,8,9,10}},
+        {2, {}},
+        {3, {}},
+        {4, {}},
+        {5, {}},
+    }, &pet_2, -1, -1}},
+    
 };
 
 std::map<int, MochilumeSkill> allSkills = {
@@ -517,8 +525,20 @@ void Mochilume::createStatsScreen(){
         UIElement* skLabel = new UIElement("skLabel", 80, 50, text, text, text);
         skLabel->setText("Skills Equipadas:");
         stats->addChild(skLabel);
-
-        UIElement* petImage = new UIElement("petImage", 30, 80, petImageStyle, petImageStyle, petImageStyle);
+        UIStyle pImage = {
+            96,106,
+            0,
+            0,
+            false,
+            petInfoMap[this->pet->getSpecie()].sprite,
+            1,
+            0,0,
+            0,1,
+            COLOR_TEXT_MINT,
+            1,
+            TextAlign::CENTER
+        };
+        UIElement* petImage = new UIElement("petImage", 30, 80, pImage, pImage, pImage);
         stats->addChild(petImage);
 
         UIElement* skill1 = new UIElement("skillSlot1",20,60,selectedSkillButton, selectedSkillButton, selectedSkillButton);
@@ -868,9 +888,27 @@ std::vector<BattleAction> Mochilume::resolveBattleTurn(){
     battleInfo.status = BattleStatus::Resolve;
     std::vector<BattleAction> actions;
 
+    int eBaseValue = allSkills[this->battleInfo.enemySkill].value;
+    int eSkillValue = eBaseValue;
+    if(allSkills[this->battleInfo.enemySkill].stat == StatType::HP && allSkills[this->battleInfo.enemySkill].target == SkillTarget::OTHER){
+        int DMGBonus = (eBaseValue * (this->battleInfo.enemy.curATK - 1)) / 10;
+        int DEFBonus = (eBaseValue * (this->pet->curDEF - 1)) / 10;
+        eSkillValue = eBaseValue + DMGBonus - DEFBonus;
+        if(eSkillValue < 1){eSkillValue = 1;}
+    }
+
+    int oBaseValue = allSkills[this->battleInfo.selectedSkill].value;
+    int oSkillValue = oBaseValue;
+    if(allSkills[this->battleInfo.selectedSkill].stat == StatType::HP && allSkills[this->battleInfo.selectedSkill].target == SkillTarget::OTHER){
+        int DMGBonus = (oBaseValue * (this->pet->curATK - 1)) / 10;
+        int DEFBonus = (oBaseValue * (this->battleInfo.enemy.curDEF - 1)) / 10;
+        oSkillValue = oBaseValue + DMGBonus - DEFBonus;
+        if(oSkillValue < 1){oSkillValue = 1;}
+    }
+    
     BattleAction enemyAction = BattleAction{
         .host = !battleInfo.isHost,
-        .value = allSkills[this->battleInfo.enemySkill].value,
+        .value = eSkillValue,
         .id = this->battleInfo.enemySkill,
         .stat = allSkills[this->battleInfo.enemySkill].stat,
         .target = allSkills[this->battleInfo.enemySkill].target
