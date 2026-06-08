@@ -43,6 +43,7 @@ struct BattleSkillModel {
 struct BattleAction{
     bool host;
     int value;
+    int id; // ID da skill usada
     StatType stat; // Qual stat foi afetada, se aplicável
     SkillTarget target; // Quem foi afetado (SELF ou OTHER)
 };

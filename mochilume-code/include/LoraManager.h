@@ -109,6 +109,7 @@ class LoraManager {
                         actObj["h"] = model.actions[i].host;
                         actObj["s"]   = static_cast<int>(model.actions[i].stat);
                         actObj["t"] = static_cast<int>(model.actions[i].target);
+                        actObj["i"] = model.actions[i].id;
                     }
                     break;
                 }
@@ -202,6 +203,7 @@ class LoraManager {
                         action.host = doc["arr"][i]["h"].as<bool>();
                         action.stat   = static_cast<StatType>(doc["arr"][i]["s"].as<int>());
                         action.target = static_cast<SkillTarget>(doc["arr"][i]["t"].as<int>());
+                        action.id = doc["arr"][i]["i"].as<int>();
                         model->actions.push_back(action);
                     }
                     break;

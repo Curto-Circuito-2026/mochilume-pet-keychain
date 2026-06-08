@@ -791,6 +791,7 @@ std::vector<BattleAction> Mochilume::resolveBattleTurn(){
     BattleAction enemyAction = BattleAction{
         .host = !battleInfo.isHost,
         .value = allSkills[this->battleInfo.enemySkill].value,
+        .id = this->battleInfo.enemySkill,
         .stat = allSkills[this->battleInfo.enemySkill].stat,
         .target = allSkills[this->battleInfo.enemySkill].target
     };
@@ -798,6 +799,7 @@ std::vector<BattleAction> Mochilume::resolveBattleTurn(){
     BattleAction yourAction = BattleAction{
         .host = battleInfo.isHost,
         .value = allSkills[this->battleInfo.selectedSkill].value,
+        .id = this->battleInfo.selectedSkill,
         .stat = allSkills[this->battleInfo.selectedSkill].stat,
         .target = allSkills[this->battleInfo.selectedSkill].target
     };
@@ -820,10 +822,13 @@ std::vector<BattleAction> Mochilume::resolveBattleTurn(){
 
 void Mochilume::passBattleActions(std::vector<BattleAction> actions){
     for(BattleAction action : actions){
-        this->battle->getChild("resolve")->setText("acao");
+        String casterName = action.host == battleInfo.isHost ? this->pet->name : this->battleInfo.enemy.name;
+        String targetName = action.target == SkillTarget::SELF ? "si mesmo" : (action.host == battleInfo.isHost ? this->battleInfo.enemy.name : this->pet->name);
+
+        String result = "";
+        this->battle->getChild("resolve")->setText(casterName + " usou " + allSkills[action.id].name + " em " + targetName);
         _screen->render();
         delay(500);
-        this->battle->getChild("resolve")->setText("result");
 
         switch (action.stat)
         {
@@ -834,12 +839,14 @@ void Mochilume::passBattleActions(std::vector<BattleAction> actions){
                     }else{
                         this->battleInfo.enemy.curHP += action.value;
                     }
+                    result += "e recuperou " + String(action.value) + " HP!";
                 }else{
                     if(action.host == battleInfo.isHost){
                         this->battleInfo.enemy.curHP -= action.value;
                     }else{
                         this->pet->curHP -= action.value;
                     }
+                    result += "e causou " + String(action.value) + " de dano!";
                 }
                 this->battle->getChild("player")->getChild("hp")->setText(String(this->pet->curHP) + "/" + String(this->pet->getBaseHP()));
                 this->battle->getChild("enemy")->getChild("hp")->setText(String(this->battleInfo.enemy.curHP) + "/" + String(this->battleInfo.enemy.maxHP));
@@ -851,12 +858,14 @@ void Mochilume::passBattleActions(std::vector<BattleAction> actions){
                     }else{
                         this->battleInfo.enemy.curATK += action.value;
                     }
+                    result += "e aumentou o ataque em " + String(action.value) + "!";
                 }else{
                     if(action.host == battleInfo.isHost){
                         this->battleInfo.enemy.curATK -= action.value;
                     }else{
                         this->pet->curATK -= action.value;
                     }
+                    result += "e reduziu o ataque do oponente em " + String(action.value) + "!";
                 }
             break;
             case StatType::DEF:
@@ -866,6 +875,14 @@ void Mochilume::passBattleActions(std::vector<BattleAction> actions){
                     }else{
                         this->battleInfo.enemy.curDEF += action.value;
                     }
+                    result += "e aumentou a defesa em " + String(action.value) + "!";
+                }else{
+                    if(action.host == battleInfo.isHost){
+                        this->battleInfo.enemy.curDEF -= action.value;
+                    }else{
+                        this->pet->curDEF -= action.value;
+                    }
+                    result += "e reduziu a defesa do oponente em " + String(action.value) + "!";
                 }
             break;
             case StatType::SPD:
@@ -875,9 +892,18 @@ void Mochilume::passBattleActions(std::vector<BattleAction> actions){
                     }else{
                         this->battleInfo.enemy.curSPD += action.value;
                     }
+                    result += "e aumentou a velocidade em " + String(action.value) + "!";
+                }else{
+                    if(action.host == battleInfo.isHost){
+                        this->battleInfo.enemy.curSPD -= action.value;
+                    }else{
+                        this->pet->curSPD -= action.value;
+                    }
+                    result += "e reduziu a velocidade do oponente em " + String(action.value) + "!";
                 }
             break;
         }
+        this->battle->getChild("resolve")->setText(result);
         _screen->render();
         delay(500);
         this->battle->getChild("resolve")->setText(" ");
@@ -886,7 +912,7 @@ void Mochilume::passBattleActions(std::vector<BattleAction> actions){
     delay(500);
     this->battle->getChild("resolve")->setText("Selecione uma skill");
     _screen->render();
-    
+
     battleInfo.status = BattleStatus::PlayerTurn;
     battleInfo.enemySkill = -1;
     battleInfo.selectedSkill = -1;
