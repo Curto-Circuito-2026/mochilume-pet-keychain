@@ -42,6 +42,8 @@ class LoraManager {
     public:
         static LoraManager* getInstance();
 
+        String getDeviceID();
+
         bool connect(String destinationID);
 
         std::vector<Packet> getPackets();

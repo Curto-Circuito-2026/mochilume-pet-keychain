@@ -1,6 +1,8 @@
 #include "LoraManager.h"
 #include <WifiManager.h>
 #include <ArduinoJson.h>
+#include <LittleFS.h>
+#include <Utils.h>
 
 LoraManager* LoraManager::_instance = nullptr;
 static volatile bool loraInterruptTriggered = false;
@@ -35,7 +37,8 @@ std::vector<Packet> LoraManager::getPackets() {
 LoraManager::LoraManager() : hspi(HSPI) {
     connection.isConnected = false;
     connection.timer = 0;
-    connection.sourceID = WifiManager::getInstance()->GetDeviceID();
+    connection.sourceID = "";
+    connection.sourceID = LoraManager::getDeviceID();
     connection.destinationID = "0";
     
     hspi.begin(LORA_SPI_SCK, LORA_SPI_MISO, LORA_SPI_MOSI, LORA_CS);
@@ -131,6 +134,39 @@ void LoraManager::loop()
     if(connection.isConnected && (millis() - connection.timer > LORA_CONNECTION_TIMEOUT)) {
         this->disconnect();
     }
+}
+
+String LoraManager::getDeviceID(){
+    if(connection.sourceID.length() > 0){
+        return connection.sourceID;
+    }
+
+    String id = "";
+
+    if (LittleFS.exists("/user.json")) {
+        File file = LittleFS.open("/user.json", "r");
+        
+        if (file) {
+            JsonDocument doc;
+            DeserializationError error = deserializeJson(doc, file);
+            
+            if (!error) {
+                const char* idChar = doc["userID"];
+                id = String(idChar);
+                id.trim();
+                if(id.length() > 0){
+                    file.close();
+                    return id;
+                }
+            }
+            file.close();
+        }
+    }
+
+    id = generateRandomString(8);
+    Serial.println(id);
+
+    return id;
 }
 LoraManager* LoraManager::getInstance() {
     if (_instance == nullptr) _instance = new LoraManager();

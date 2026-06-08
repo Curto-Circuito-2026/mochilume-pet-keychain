@@ -31,8 +31,6 @@ public:
     String currentNetwork;
     bool isConnected;
 
-    String GetDeviceID();
-
     bool Fetch(String URI, HTTPMETHOD method, const String& payload, String& outResult, bool& outFinished);
     bool Fetch(String URI, String& outResult, bool& outFinished);
 
