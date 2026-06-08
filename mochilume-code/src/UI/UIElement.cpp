@@ -175,6 +175,10 @@ UIStyle UIElement::getStyle(){
     return this->style;
 }
 
+void UIElement::clearChildren(){
+    this->children.clear();
+};
+
 bool UIElement::onButtonPress(uint8_t button){
     Serial.print("BOTÃO: ");
     Serial.print(button);

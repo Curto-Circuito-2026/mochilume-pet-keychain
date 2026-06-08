@@ -58,19 +58,6 @@ UIStyle capsLockStyleHover = {
     TextAlign::CENTER 
 };
 
-UIStyle centerText = {
-    240,0,
-    0,
-    0,
-    true,
-    nullptr,
-    0,
-    0,0,
-    0,0,
-    COLOR_TEXT_MINT,
-    1,
-    TextAlign::CENTER,
-};
 
 const char* keyMap[5][13] = {
     { "'",  "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "=" },

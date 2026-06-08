@@ -39,10 +39,6 @@ WifiManager* WifiManager::getInstance() {
     return _instance;
 }
 
-String WifiManager::GetDeviceID() {
-    return WiFi.macAddress();
-}
-
 void WifiManager::FetchTask(void* pvParameters) {
     FetchPayload* data = (FetchPayload*)pvParameters;
     

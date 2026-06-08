@@ -65,6 +65,8 @@ class MochilumePet {
         void changeCurSPD(int addr);
         void changeCurATK(int addr);
 
+        void giveXP(int amount);
+
     private: 
         int species;
 

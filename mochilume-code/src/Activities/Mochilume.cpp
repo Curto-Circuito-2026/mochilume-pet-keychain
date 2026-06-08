@@ -112,7 +112,7 @@ UIStyle battleBox = {
     240,55,
     0,
     GC9A01A_WHITE,
-    false,
+    true,
     nullptr,
     1,
     0,0,
@@ -150,20 +150,27 @@ UIStyle squareStyle = {
 };
 
 std::map<int, PetData> petInfoMap = {
-  {1, {"testPET", 0, 0, 0, 0, {{1, {1,2,3,4,5,6,7,8,9,10}}}, &pet_1, -1, -1}}  
+  {1, {"Sapomba", 10, 10, 10, 10, {
+    {1, {1,2,3,4,5,6,7,8,9,10}},
+    {2, {}},
+    {3, {}},
+    {4, {}},
+    {5, {}},
+}, &pet_1, -1, -1}}  
 };
 
 std::map<int, MochilumeSkill> allSkills = {
-    {1, {"test0", SkillTarget::OTHER, StatType::HP, 10}},
-    {2, {"test1", SkillTarget::OTHER, StatType::HP, 10}},
-    {3, {"test2", SkillTarget::OTHER, StatType::HP, 10}},
+    {1, {"Mordida", SkillTarget::OTHER, StatType::HP, 10}},
+    {2, {"Cabeçada", SkillTarget::OTHER, StatType::HP, 10}},
+    {3, {"Bandagem", SkillTarget::SELF, StatType::HP, 10}},
+
     {4, {"test3", SkillTarget::OTHER, StatType::HP, 10}},
     {5, {"test4", SkillTarget::OTHER, StatType::HP, 10}},
     {6, {"test5", SkillTarget::OTHER, StatType::HP, 10}},
     {7, {"test6", SkillTarget::OTHER, StatType::HP, 10}},
     {8, {"test7", SkillTarget::OTHER, StatType::HP, 10}},
     {9, {"test8", SkillTarget::OTHER, StatType::HP, 10}},
-    {10, {"test9", SkillTarget::OTHER, StatType::HP, 10}},
+    {10,{"test9", SkillTarget::OTHER, StatType::HP, 10}},
 };
 
 int MochilumePet::getBaseHP(){
@@ -204,6 +211,14 @@ void MochilumePet::changeSkill(int index, int val){
 void MochilumePet::changeName(String val){
     this->name = val;
     this->updateSave();
+}
+
+void MochilumePet::giveXP(int amount){
+    this->xp += amount;
+    this->updateSave();
+    if(xp >= 100){
+        this->levelUp();
+    }
 }
 void MochilumePet::levelUp(){
     this->level += 1;
@@ -281,7 +296,6 @@ void Mochilume::setup() {
 
 void Mochilume::createHomeScreen(){
     this->home = new UIScreen();
-    // this->home->backgroundImage = bgMainSPR;
 
     UIElement* statsButton = new UIElement(
         "statsButton", 
@@ -313,10 +327,7 @@ void Mochilume::createHomeScreen(){
 
     exitButton->setAction(BTN_A, [this](UIElement* element) { Serial.println("SAIR - MENU"); ActivityManager::getInstance()->setActivity("menu"); });
     statsButton->setAction(BTN_A, [this](UIElement* element) { Serial.println("IR STATS"); _screen->changeScreen(stats); });
-    battleSelectButton->setAction(BTN_A, [this](UIElement* element) { Serial.println("IR BS"); 
-        _screen->changeScreen(battleSelect); 
-        //this->startBattle(false, "", {});
-    });
+    battleSelectButton->setAction(BTN_A, [this](UIElement* element) { Serial.println("IR BS"); _screen->changeScreen(battleSelect); });
 
     UIMenu* homeMenu = new UIMenu(
         "menu",
@@ -331,12 +342,29 @@ void Mochilume::createHomeScreen(){
         false
     );
 
+    UIElement* notification = new UIElement("notification", 0, 0, backdrop, backdrop, backdrop);
+    UIElement* notificationText = new UIElement("text", 0,80, centerText, centerText, centerText);
+    notificationText->setText("");
+    UIElement* notificationButton = new UIElement("button", 80, 140, button, hoverButton, button);
+    notificationButton->setText("OK");
+    notificationButton->setAction(BTN_A, [this](UIElement* element){
+        this->home->getChild("notification")->setVisibility(false);
+        this->home->setSelectedIndex(0);
+        this->home->getChild("menu")->setState(UIState::SELECTED);
+    });
+
+    notification->addChild(notificationButton);
+    notification->addChild(notificationText);
+
     homeMenu->addChild(statsButton);
     homeMenu->addChild(battleSelectButton);
     homeMenu->addChild(exitButton);
     homeMenu->setSelectedIndex(0);
 
     home->addChild(homeMenu);
+    home->addChild(notification);
+    notification->setVisibility(false);
+
     home->setSelectedIndex(0);
     homeMenu->setState(UIState::SELECTED);
 
@@ -537,11 +565,11 @@ void Mochilume::createBattleSelectionScreen(){
     backdrop);
     UIElement* acceptText = new UIElement(
         "acceptText", 
-        90, 
+        0, 
         80, 
-        text, 
-        text, 
-        text);
+        centerText, 
+        centerText, 
+        centerText);
     acceptText->setText("Aceitar desafio?");
 
     UIMenu* acceptMenu = new UIMenu(
@@ -568,7 +596,7 @@ void Mochilume::createBattleSelectionScreen(){
     acceptButton->setAction(BTN_A, [this](UIElement* element) { 
         BattleStartModel model;
         model.isHost = false;
-        model.seed = String(random(0, 100000));
+        model.seed = String(random(0, 1000));
         model.opponentPet = {
             .specie = this->pet->getSpecie(),
             .name = this->pet->name,
@@ -745,6 +773,7 @@ void Mochilume::startBattle(bool host, String seed, ShortPetData enemy){
     this->battleInfo.status = BattleStatus::PlayerTurn;
     this->battleInfo.isHost = host;
     this->battleInfo.seed = seed;
+    this->battleInfo.enemy = enemy;
 
     UIElement* enemySQ = this->battle->getChild("enemy");
     enemySQ->getChild("name")->setText(enemy.name);
@@ -790,20 +819,49 @@ void Mochilume::endBattle(BattleWinState winState, int xp){
     switch (winState)
     {
     case BattleWinState::WIN:
-        message = "Você venceu!";
+        message = "Vitoria! Receba " + String(xp) + " pontos de XP";
         break;
 
     case BattleWinState::LOSE:
+        message = "Derrota!";
         break;
 
     case BattleWinState::TIE:
+        message = "Empate!";
+        if(xp > 0){
+            message += " Receba " + String(xp) + " pontos de XP";
+        }
         break;
 
     case BattleWinState::DROPPED:
+        message = "Queda na Conexão com oponente!";
+        if(xp > 0){
+            message += " Receba " + String(xp) + " pontos de XP";
+        }
         break;
     }
+    this->pet->giveXP(xp);
+    createStatsScreen();
 
+    this->home->getChild("notification")->setVisibility(true);
+    this->home->getChild("menu")->setState(UIState::BASE);
+    this->home->setSelectedIndex(1);
+    this->home->getChild("notification")->setSelectedIndex(0);
+    this->home->getChild("notification")->getChild("text")->setText(message);
+           
     this->_screen->changeScreen(home);
+
+    //reset battle
+    this->battleInfo.actions.clear();
+    this->battleInfo.enemy = {};
+    this->battleInfo.isHost = false;
+    this->battleInfo.seed = "";
+    this->battleInfo.enemySkill = -1;
+    this->battleInfo.selectedSkill = -1;
+    this->battleInfo.status = BattleStatus::None;
+    createBattleSelectionScreen();
+    createBattleScreen();
+
 }
 
 std::vector<BattleAction> Mochilume::resolveBattleTurn(){
@@ -859,7 +917,7 @@ void Mochilume::passBattleActions(std::vector<BattleAction> actions){
         String result = "";
         this->battle->getChild("resolve")->setText(casterName + " usou " + allSkills[action.id].name + " em " + targetName);
         _screen->render();
-        safeDelay(700);
+        safeDelay(750);
 
         switch (action.stat)
         {
@@ -947,11 +1005,8 @@ void Mochilume::passBattleActions(std::vector<BattleAction> actions){
         }
         this->battle->getChild("resolve")->setText(result);
         _screen->render();
-        safeDelay(700);
-        this->battle->getChild("resolve")->setText(" ");
-        _screen->render();
+        safeDelay(1200);
     }
-    safeDelay(800);
     this->battle->getChild("resolve")->setText("Selecione uma skill");
     _screen->render();
 
@@ -959,7 +1014,7 @@ void Mochilume::passBattleActions(std::vector<BattleAction> actions){
 
     if(this->pet->curHP <= 0 && this->battleInfo.enemy.curHP <= 0){
         //empate
-        endBattle(BattleWinState::TIE, 0);
+        endBattle(BattleWinState::TIE, 5);
         return;
     } 
     else if(this->pet->curHP <= 0){
@@ -1093,7 +1148,7 @@ void Mochilume::statsLoop(){}
 void Mochilume::battleSelectionLoop(){
     if (millis() - lastPingTime > pingInterval && !LoraManager::getInstance()->isConnected()) {
         PingModel send ={
-            .message = WifiManager::getInstance()->GetDeviceID()
+            .message = LoraManager::getInstance()->getDeviceID()
         };
         LoraManager::getInstance()->sendPacket<PingModel>(send, PING);
         lastPingTime = millis();
@@ -1137,7 +1192,7 @@ void Mochilume::battleSelectionLoop(){
             }
         }
         if(packet.type == BATTLE_INVITE){
-            ShortPetData petShort = LoraManager::getInstance()->handlePacket<ShortPetData>(packet);
+            ShortPetData petShort = LoraManager::getInstance()->handlePacket<BattleInviteModel>(packet).sourcePet;
             LoraManager::getInstance()->connect(packet.source);
             Serial.println("Received battle invite from " + packet.source);
             this->battleSelect->getChild("acceptMessage")->setVisibility(true);
@@ -1160,13 +1215,12 @@ void Mochilume::battleSelectionLoop(){
 void Mochilume::battleLoop(){
 
     if(!LoraManager::getInstance()->isConnected()){
-        int xp = this->pet->curHP > this->battleInfo.enemy.curHP ? 10 : 0;
+        int xp = this->pet->curHP > this->battleInfo.enemy.curHP ? 5 : 0;
         endBattle(BattleWinState::DROPPED, xp);
         return;
     }
 
     if (millis() - actionTime > actionTimeInterval) {
-        //keep connection open
         PingModel send ={
             .message = String(millis())
         };

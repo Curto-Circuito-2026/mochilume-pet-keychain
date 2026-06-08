@@ -123,6 +123,19 @@ static const UIStyle backdrop = {
     1,
     TextAlign::CENTER
 };
+static const UIStyle centerText = {
+    240,0,
+    0,
+    0,
+    true,
+    nullptr,
+    0,
+    0,0,
+    0,0,
+    COLOR_TEXT_MINT,
+    1,
+    TextAlign::CENTER,
+};
 
 
 #endif
