@@ -665,11 +665,17 @@ void Mochilume::createBattleScreen(){
         sb->setAction(BTN_A, [this, sk](UIElement* element){
             if(this->battleInfo.status == BattleStatus::PlayerTurn){
                 this->battleInfo.selectedSkill = sk;
-                if(this->battleInfo.enemySkill == -1){
-                    this->battleInfo.status = BattleStatus::WaitingEnemy;
-                    this->battle->getChild("resolve")->setText("Aguardando Oponente...");
+                if(battleInfo.isHost){
+                    if(this->battleInfo.enemySkill == -1){
+                        this->battleInfo.status = BattleStatus::WaitingEnemy;
+                        this->battle->getChild("resolve")->setText("Aguardando Oponente...");
+                    }else{
+                        this->resolveBattleTurn();
+                    }
                 }else{
-                    this->resolveBattleTurn();
+                    BattleSkillModel model;
+                    model.skillID = sk;
+                    LoraManager::getInstance()->sendPacket<BattleSkillModel>(model, BATTLE_SKILL);
                 }
             }
         });
@@ -1087,7 +1093,9 @@ void Mochilume::battleSelectionLoop(){
 }
 void Mochilume::battleLoop(){
     for (Packet packet : LoraManager::getInstance()->getPackets()) {
-        if(packet.type == BATTLE_SKILL && battleInfo.isHost && battleInfo.status == BattleStatus::WaitingEnemy){
+        Serial.println("Packet received: " + String(packet.type) + " from " + packet.source);
+
+        if(packet.type == BATTLE_SKILL && battleInfo.isHost){
             int enemySkill = LoraManager::getInstance()->handlePacket<int>(packet);
             battleInfo.enemySkill = enemySkill;
             if(battleInfo.selectedSkill != -1){
