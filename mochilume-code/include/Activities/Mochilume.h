@@ -99,7 +99,6 @@ struct Battle{
     int selectedSkill;
     int enemySkill;
     bool isHost;
-    bool received = false;
     std::vector<BattleAction> actions;
 };
 
@@ -133,7 +132,7 @@ private:
     void battleLoop();
 
     long lastPingTime = 0;
-    const long pingInterval = 5000; // 5 segundos
+    const long pingInterval = 2000; // 5 segundos
 public:
     Mochilume();
 

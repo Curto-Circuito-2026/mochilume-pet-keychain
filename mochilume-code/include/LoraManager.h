@@ -99,18 +99,16 @@ class LoraManager {
                 }
                 case BATTLE_TURN: {
                     const BattleTurnModel& model = *static_cast<const BattleTurnModel*>(msgPtr);
-                    doc["actionsAmount"] = model.actions.size();
+                    doc["amnt"] = model.actions.size();
                     
-                    JsonArray jsonActions = doc["actionsArray"].to<JsonArray>();
+                    JsonArray jsonActions = doc["arr"].to<JsonArray>();
                     
                     for(size_t i = 0; i < model.actions.size(); i++) {
                         JsonObject actObj = jsonActions.add<JsonObject>();
-                        actObj["action"] = model.actions[i].action;
-                        actObj["result"] = model.actions[i].result;
-                        actObj["value"]  = model.actions[i].value;
-                        actObj["isHost"] = model.actions[i].isHost;
-                        actObj["stat"]   = static_cast<int>(model.actions[i].stat);
-                        actObj["target"] = static_cast<int>(model.actions[i].target);
+                        actObj["v"]  = model.actions[i].value;
+                        actObj["h"] = model.actions[i].host;
+                        actObj["s"]   = static_cast<int>(model.actions[i].stat);
+                        actObj["t"] = static_cast<int>(model.actions[i].target);
                     }
                     break;
                 }
@@ -197,15 +195,13 @@ class LoraManager {
                 }
                 case BATTLE_TURN: {
                     BattleTurnModel* model = static_cast<BattleTurnModel*>(resultPtr);
-                    int actionsAmount = doc["actionsAmount"].as<int>();
+                    int actionsAmount = doc["amnt"].as<int>();
                     for(int i = 0; i < actionsAmount; i++) {
                         BattleAction action;
-                        action.action = doc["actionsArray"][i]["action"].as<String>();
-                        action.result = doc["actionsArray"][i]["result"].as<String>();
-                        action.value  = doc["actionsArray"][i]["value"].as<int>();
-                        action.isHost = doc["actionsArray"][i]["isHost"].as<bool>();
-                        action.stat   = static_cast<StatType>(doc["actionsArray"][i]["stat"].as<int>());
-                        action.target = static_cast<SkillTarget>(doc["actionsArray"][i]["target"].as<int>());
+                        action.value  = doc["arr"][i]["v"].as<int>();
+                        action.host = doc["arr"][i]["h"].as<bool>();
+                        action.stat   = static_cast<StatType>(doc["arr"][i]["s"].as<int>());
+                        action.target = static_cast<SkillTarget>(doc["arr"][i]["t"].as<int>());
                         model->actions.push_back(action);
                     }
                     break;

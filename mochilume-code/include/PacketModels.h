@@ -41,9 +41,7 @@ struct BattleSkillModel {
 };
 
 struct BattleAction{
-    bool isHost;
-    String action; // Descrição textual da ação (ex: "Pet A usou Skill X!");
-    String result; // Descrição do resultado (ex: "Pet B perdeu 20 HP!");
+    bool host;
     int value;
     StatType stat; // Qual stat foi afetada, se aplicável
     SkillTarget target; // Quem foi afetado (SELF ou OTHER)
