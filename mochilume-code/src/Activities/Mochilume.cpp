@@ -661,8 +661,9 @@ void Mochilume::createBattleScreen(){
         );
 
         sb->setText(allSkills[sk].name);
-
+        
         sb->setAction(BTN_A, [this, sk](UIElement* element){
+            actionTime = millis();
             if(this->battleInfo.status == BattleStatus::PlayerTurn && this->battleInfo.selectedSkill == -1){
                 this->battleInfo.selectedSkill = sk;
                 if(battleInfo.isHost){
@@ -779,10 +780,31 @@ void Mochilume::startBattle(bool host, String seed, ShortPetData enemy){
         TextAlign::CENTER
     });
 
+    actionTime = millis();
     this->_screen->changeScreen(battle);
 
 }
+void Mochilume::endBattle(BattleWinState winState, int xp){
+    LoraManager::getInstance()->disconnect();
+    String message = "";
+    switch (winState)
+    {
+    case BattleWinState::WIN:
+        message = "Você venceu!";
+        break;
 
+    case BattleWinState::LOSE:
+        break;
+
+    case BattleWinState::TIE:
+        break;
+
+    case BattleWinState::DROPPED:
+        break;
+    }
+
+    this->_screen->changeScreen(home);
+}
 
 std::vector<BattleAction> Mochilume::resolveBattleTurn(){
     battleInfo.status = BattleStatus::Resolve;
@@ -821,6 +843,15 @@ std::vector<BattleAction> Mochilume::resolveBattleTurn(){
 };
 
 void Mochilume::passBattleActions(std::vector<BattleAction> actions){
+
+    auto safeDelay = [&](unsigned long ms) {
+        unsigned long startWait = millis();
+        while(millis() - startWait < ms) {
+            actionTime = millis(); 
+            delay(10);             
+        }
+    };
+
     for(BattleAction action : actions){
         String casterName = action.host == battleInfo.isHost ? this->pet->name : this->battleInfo.enemy.name;
         String targetName = action.target == SkillTarget::SELF ? "si mesmo" : (action.host == battleInfo.isHost ? this->battleInfo.enemy.name : this->pet->name);
@@ -828,7 +859,7 @@ void Mochilume::passBattleActions(std::vector<BattleAction> actions){
         String result = "";
         this->battle->getChild("resolve")->setText(casterName + " usou " + allSkills[action.id].name + " em " + targetName);
         _screen->render();
-        delay(500);
+        safeDelay(700);
 
         switch (action.stat)
         {
@@ -836,15 +867,20 @@ void Mochilume::passBattleActions(std::vector<BattleAction> actions){
                 if(action.target == SkillTarget::SELF){
                     if(action.host == battleInfo.isHost){
                         this->pet->curHP += action.value;
+                        if(this->pet->curHP > this->pet->getBaseHP()){this->pet->curHP = this->pet->getBaseHP();}
                     }else{
                         this->battleInfo.enemy.curHP += action.value;
+                        if(this->battleInfo.enemy.curHP > this->battleInfo.enemy.maxHP){this->battleInfo.enemy.curHP = this->battleInfo.enemy.maxHP;}
+
                     }
                     result += "e recuperou " + String(action.value) + " HP!";
                 }else{
                     if(action.host == battleInfo.isHost){
                         this->battleInfo.enemy.curHP -= action.value;
+                        if(this->battleInfo.enemy.curHP < 0){this->battleInfo.enemy.curHP = 0;}
                     }else{
                         this->pet->curHP -= action.value;
+                        if(this->pet->curHP < 0){this->pet->curHP = 0;}
                     }
                     result += "e causou " + String(action.value) + " de dano!";
                 }
@@ -862,8 +898,10 @@ void Mochilume::passBattleActions(std::vector<BattleAction> actions){
                 }else{
                     if(action.host == battleInfo.isHost){
                         this->battleInfo.enemy.curATK -= action.value;
+                        if(this->battleInfo.enemy.curATK < 0){this->battleInfo.enemy.curATK = 0;}
                     }else{
                         this->pet->curATK -= action.value;
+                        if(this->pet->curATK < 0){this->pet->curATK = 0;}
                     }
                     result += "e reduziu o ataque do oponente em " + String(action.value) + "!";
                 }
@@ -879,8 +917,10 @@ void Mochilume::passBattleActions(std::vector<BattleAction> actions){
                 }else{
                     if(action.host == battleInfo.isHost){
                         this->battleInfo.enemy.curDEF -= action.value;
+                        if(this->battleInfo.enemy.curDEF < 0){this->battleInfo.enemy.curDEF = 0;}
                     }else{
                         this->pet->curDEF -= action.value;
+                        if(this->pet->curDEF < 0){this->pet->curDEF = 0;}
                     }
                     result += "e reduziu a defesa do oponente em " + String(action.value) + "!";
                 }
@@ -896,8 +936,10 @@ void Mochilume::passBattleActions(std::vector<BattleAction> actions){
                 }else{
                     if(action.host == battleInfo.isHost){
                         this->battleInfo.enemy.curSPD -= action.value;
+                        if(this->battleInfo.enemy.curSPD < 0){this->battleInfo.enemy.curSPD = 0;}
                     }else{
                         this->pet->curSPD -= action.value;
+                        if(this->pet->curSPD < 0){this->pet->curSPD = 0;}
                     }
                     result += "e reduziu a velocidade do oponente em " + String(action.value) + "!";
                 }
@@ -905,18 +947,40 @@ void Mochilume::passBattleActions(std::vector<BattleAction> actions){
         }
         this->battle->getChild("resolve")->setText(result);
         _screen->render();
-        delay(500);
+        safeDelay(700);
         this->battle->getChild("resolve")->setText(" ");
         _screen->render();
     }
-    delay(500);
+    safeDelay(800);
     this->battle->getChild("resolve")->setText("Selecione uma skill");
     _screen->render();
 
-    battleInfo.status = BattleStatus::PlayerTurn;
-    battleInfo.enemySkill = -1;
-    battleInfo.selectedSkill = -1;
-    battleInfo.actions.clear();
+    
+
+    if(this->pet->curHP <= 0 && this->battleInfo.enemy.curHP <= 0){
+        //empate
+        endBattle(BattleWinState::TIE, 0);
+        return;
+    } 
+    else if(this->pet->curHP <= 0){
+        //perdeu
+        endBattle(BattleWinState::LOSE, 0);
+        return;
+    }
+    else if(this->battleInfo.enemy.curHP <= 0){
+        //venceu
+        endBattle(BattleWinState::WIN, 10);
+        return;
+    }
+
+    if(!battleInfo.isHost){
+        battleInfo.enemySkill = -1;
+        battleInfo.selectedSkill = -1;
+        battleInfo.actions.clear();
+        battleInfo.status = BattleStatus::PlayerTurn;
+        LoraManager::getInstance()->sendPacket<String>("DONE", MESSAGE);
+    }
+    
 };
 
 void Mochilume::loadBaseData(){
@@ -1024,16 +1088,16 @@ void Mochilume::loop() {
 }
 
 void Mochilume::homeLoop(){
-    //lora checar se chegou convite pra batalhar
 }
 void Mochilume::statsLoop(){}
 void Mochilume::battleSelectionLoop(){
-    if (millis() - lastPingTime > pingInterval) {
+    if (millis() - lastPingTime > pingInterval && !LoraManager::getInstance()->isConnected()) {
         PingModel send ={
             .message = WifiManager::getInstance()->GetDeviceID()
         };
         LoraManager::getInstance()->sendPacket<PingModel>(send, PING);
         lastPingTime = millis();
+        delay(200);
     }
 
     for (Packet packet : LoraManager::getInstance()->getPackets()) {
@@ -1094,7 +1158,25 @@ void Mochilume::battleSelectionLoop(){
     
 }
 void Mochilume::battleLoop(){
+
+    if(!LoraManager::getInstance()->isConnected()){
+        int xp = this->pet->curHP > this->battleInfo.enemy.curHP ? 10 : 0;
+        endBattle(BattleWinState::DROPPED, xp);
+        return;
+    }
+
+    if (millis() - actionTime > actionTimeInterval) {
+        //keep connection open
+        PingModel send ={
+            .message = String(millis())
+        };
+        LoraManager::getInstance()->sendPacket<PingModel>(send, PING);
+        actionTime = millis();
+        delay(200);
+    }
+
     for (Packet packet : LoraManager::getInstance()->getPackets()) {
+        actionTime = millis();
         Serial.println("Packet received: " + String(packet.type) + " from " + packet.source);
         Serial.println(battleInfo.isHost);
         if(packet.type == BATTLE_SKILL && battleInfo.isHost){
@@ -1120,6 +1202,12 @@ void Mochilume::battleLoop(){
             String msg = LoraManager::getInstance()->handlePacket<String>(packet);
             if(msg == "OK"){
                 passBattleActions(battleInfo.actions);
+            }
+            if(msg == "DONE"){
+                battleInfo.enemySkill = -1;
+                battleInfo.selectedSkill = -1;
+                battleInfo.actions.clear();
+                battleInfo.status = BattleStatus::PlayerTurn;
             }
         }
     }

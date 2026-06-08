@@ -102,6 +102,13 @@ struct Battle{
     std::vector<BattleAction> actions;
 };
 
+enum BattleWinState{
+    WIN,
+    LOSE,
+    TIE,
+    DROPPED
+};
+
 class Mochilume : public Activity {
 private:
     UIScreen* home;
@@ -113,6 +120,7 @@ private:
 
     Battle battleInfo;
     void startBattle(bool host, String seed, ShortPetData enemy);
+    void endBattle(BattleWinState winState, int xp); 
     std::vector<BattleAction> resolveBattleTurn();
     void passBattleActions(std::vector<BattleAction> actions);
 
@@ -132,7 +140,9 @@ private:
     void battleLoop();
 
     long lastPingTime = 0;
+    long actionTime = 0;
     const long pingInterval = 2000; // 2 segundos
+    const long actionTimeInterval = 60000;
 public:
     Mochilume();
 
