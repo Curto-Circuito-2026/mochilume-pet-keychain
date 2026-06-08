@@ -850,6 +850,7 @@ std::vector<BattleAction> Mochilume::resolveBattleTurn(){
     battleInfo.actions = actions;
     BattleTurnModel model;
     model.actions = battleInfo.actions;
+    Serial.println("ENVIANDO AÇÕES PARA O OUTRO JOGADOR");
     LoraManager::getInstance()->sendPacket<BattleTurnModel>(model, BATTLE_TURN);
     return actions;
 };
@@ -1094,10 +1095,11 @@ void Mochilume::battleSelectionLoop(){
 void Mochilume::battleLoop(){
     for (Packet packet : LoraManager::getInstance()->getPackets()) {
         Serial.println("Packet received: " + String(packet.type) + " from " + packet.source);
-
+        Serial.println(battleInfo.isHost);
         if(packet.type == BATTLE_SKILL && battleInfo.isHost){
             int enemySkill = LoraManager::getInstance()->handlePacket<int>(packet);
             battleInfo.enemySkill = enemySkill;
+            Serial.println("Enemy skill selected: " + String(enemySkill));
             if(battleInfo.selectedSkill != -1){
                 this->resolveBattleTurn();
                 
@@ -1105,6 +1107,7 @@ void Mochilume::battleLoop(){
         }
 
         if(packet.type == BATTLE_TURN && !battleInfo.isHost){
+            Serial.println("Received battle turn actions");
             BattleTurnModel model = LoraManager::getInstance()->handlePacket<BattleTurnModel>(packet);
             bool ok = true;
             if(ok){
@@ -1114,6 +1117,7 @@ void Mochilume::battleLoop(){
         }
 
         if(packet.type == MESSAGE && battleInfo.isHost){
+            Serial.println("Received confirmation from opponent");
             String msg = LoraManager::getInstance()->handlePacket<String>(packet);
             if(msg == "OK"){
                 passBattleActions(battleInfo.actions);
