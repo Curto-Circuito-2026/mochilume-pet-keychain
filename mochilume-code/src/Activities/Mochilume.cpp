@@ -810,9 +810,6 @@ std::vector<BattleAction> Mochilume::resolveBattleTurn(){
         actions.push_back(enemyAction);
     }
 
-    battleInfo.selectedSkill = -1;
-    battleInfo.enemySkill = -1;
-    
     battleInfo.actions = actions;
     BattleTurnModel model;
     model.actions = battleInfo.actions;
@@ -824,7 +821,8 @@ std::vector<BattleAction> Mochilume::resolveBattleTurn(){
 void Mochilume::passBattleActions(std::vector<BattleAction> actions){
     for(BattleAction action : actions){
         this->battle->getChild("resolve")->setText("acao");
-        delay(1000);
+        _screen->render();
+        delay(500);
         this->battle->getChild("resolve")->setText("result");
 
         switch (action.stat)
@@ -880,13 +878,18 @@ void Mochilume::passBattleActions(std::vector<BattleAction> actions){
                 }
             break;
         }
-
-        delay(1000);
+        _screen->render();
+        delay(500);
         this->battle->getChild("resolve")->setText(" ");
+        _screen->render();
     }
-    delay(1000);
+    delay(500);
     this->battle->getChild("resolve")->setText("Selecione uma skill");
+    _screen->render();
+    
     battleInfo.status = BattleStatus::PlayerTurn;
+    battleInfo.enemySkill = -1;
+    battleInfo.selectedSkill = -1;
     battleInfo.actions.clear();
 };
 
