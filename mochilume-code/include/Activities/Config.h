@@ -20,6 +20,10 @@ private:
     void createRegisterAccountScreen();
     void createLoginAccountScreen();
 
+    void loadWifiList();
+    long wifiListTime;
+    const long wifiListCooldown = 5000;
+
 public:
     Config();
     

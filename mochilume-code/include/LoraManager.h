@@ -41,6 +41,7 @@ class LoraManager {
         String lastProcessedMsgId = "";
     public:
         static LoraManager* getInstance();
+        void begin();
 
         String getDeviceID();
 
