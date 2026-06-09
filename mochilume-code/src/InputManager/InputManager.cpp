@@ -3,6 +3,8 @@
 #include <cmath>
 #include <algorithm>
 #include <Wire.h>
+#include <LittleFS.h>
+#include <ArduinoJson.h>
 
 const int MPU_ADDR = 0x68; 
 
@@ -17,7 +19,12 @@ InputManager* InputManager::getInstance() {
 
 bool InputManager::begin() {
     bateryLevel = 0;
-    passosValidados = 0;
+    File file = LittleFS.open("/user.json", "r");
+    JsonDocument doc;
+    deserializeJson(doc, file);
+    Serial.print(doc.as<String>());
+    passosValidados = doc["steps"] | 0;
+    file.close();
     passosCandidatos = 0;
     tempoUltimoPasso = 0;
     estadoAtual = 0; 
@@ -119,8 +126,8 @@ void InputManager::processPedometer() {
                     Serial.println(passosLocaisBatch);
 
                     if (passosLocaisBatch >= STEPS_BATCH_SIZE) {
-                        //saveSteps(passosLocaisBatch);
-                        //passosLocaisBatch = 0; 
+                        saveStepsInFile();
+                        passosLocaisBatch = 0;
                     }
                 }
             } else if (deltaTempo > INTERVALO_MAX_PASSO) {
@@ -193,6 +200,27 @@ bool InputManager::isPressed(uint8_t pin) {
     return digitalRead(pin);
 }
 
+void InputManager::saveStepsInFile() {
+    JsonDocument doc; 
+
+    if (LittleFS.exists("/user.json")) {
+        File readFile = LittleFS.open("/user.json", "r");
+        if (readFile) {
+            deserializeJson(doc, readFile);
+            readFile.close();
+        }
+    }
+    doc["steps"] = this->passosValidados;
+    File file = LittleFS.open("/user.json", "w");
+    if (file) {
+        serializeJson(doc, file);
+        file.close();
+        Serial.print("Passos atualizados com sucesso no user.json: ");
+        Serial.println(this->passosValidados);
+    } else {
+        Serial.println("Erro ao abrir user.json para escrita");
+    }
+}
 
 void InputManager::setSteps(int quantidadeSalvar) {
     passosValidados = quantidadeSalvar;

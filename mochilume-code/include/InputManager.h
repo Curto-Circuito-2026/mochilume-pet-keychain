@@ -50,6 +50,7 @@ public:
     int getBatteryLevel() { return bateryLevel; };
     void setSteps(int quantidadeSalvar);
     void saveSteps(int quantidadeSalvar);
+    void saveStepsInFile();
     
 };
 

@@ -9,6 +9,7 @@
 #include <WifiManager.h>
 #include <SaveManager.h>
 #include <LoraManager.h>
+#include <LittleFS.h>
 
 DisplayManager* display;
 ScreenManager* screen;
@@ -24,8 +25,7 @@ Mochilume* mochilumeActivity = nullptr;
 
 void setup() {
     Serial.begin(115200);
-    delay(2000);
-    
+    LittleFS.begin(true);
     Serial.println("DISPLAY START");
     display = DisplayManager::getInstance();
     display->begin();
