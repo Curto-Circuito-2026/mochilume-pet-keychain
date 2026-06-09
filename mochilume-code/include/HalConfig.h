@@ -40,13 +40,16 @@
 #define LORA_DIO1     33  
 #define LORA_BUSY     34  
 
+//Battery
+#define BATTERY_PIN 36
+
 // --- STORAGE (SD CARD) ---
 #define SD_CS        2
 
 // --- SENSORS (I2C) ---
 #define MPU_SDA      21
 #define MPU_SCL      22
-
+#define MPU_TRIG     19
 // --- API URLS ---
 #define API_BASE_URL "https://api-mochilume-acd9htg9ghhacghy.brazilsouth-01.azurewebsites.net"
 // Global
