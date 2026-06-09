@@ -141,11 +141,26 @@ void InputManager::processPedometer() {
 }
 
 void InputManager::updateBatteryLevel() {
-    int pinRead = analogRead(BATTERY_PIN);
-    float vBat = (pinRead * 3.3 / 4095.0) * 2.0;
-    if (vBat > 4.2) vBat = 4.2;
-    if (vBat < 3.2) vBat = 3.2;  
-    int percentage = (int)((vBat - 3.2) * 100.0 / (4.2 - 3.2));
+    static unsigned long lastReadBatteryTime = 0;
+    unsigned long curTime = millis();
+    
+    if (curTime - lastReadBatteryTime < 5000 && bateryLevel != 0) { 
+        return; 
+    }
+    lastReadBatteryTime = curTime;
+
+    long totalRead = 0;
+    for (int i = 0; i < 100; i++) {
+        totalRead += analogRead(BATTERY_PIN);
+    }
+    float pinReadAverage = (float)totalRead / 100.0;
+
+    float vBat = (pinReadAverage * 3.3 / 4095.0) * 2.0;
+
+    if (vBat > 3.7) vBat = 3.7;
+    if (vBat < 3.4) vBat = 3.4;  
+
+    int percentage = (int)((vBat - 3.4) * 100.0 / (3.7 - 3.4));
     bateryLevel = percentage;
 }
 
