@@ -38,7 +38,6 @@ LoraManager::LoraManager() : hspi(HSPI) {
     connection.isConnected = false;
     connection.timer = 0;
     connection.sourceID = "";
-    connection.sourceID = LoraManager::getDeviceID();
     connection.destinationID = "0";
     
     hspi.begin(LORA_SPI_SCK, LORA_SPI_MISO, LORA_SPI_MOSI, LORA_CS);
@@ -151,12 +150,14 @@ String LoraManager::getDeviceID(){
             DeserializationError error = deserializeJson(doc, file);
             
             if (!error) {
-                const char* idChar = doc["userID"];
-                id = String(idChar);
-                id.trim();
-                if(id.length() > 0){
-                    file.close();
-                    return id;
+                if (doc.containsKey("userID") && doc["userID"].is<const char*>()) {
+                    const char* idChar = doc["userID"];
+                    id = String(idChar);
+                    id.trim();
+                    if(id.length() > 0){
+                        file.close();
+                        return id;
+                    }
                 }
             }
             file.close();
@@ -173,4 +174,7 @@ LoraManager* LoraManager::getInstance() {
     return _instance;
 }
 
+void LoraManager::begin() {
+    connection.sourceID = LoraManager::getDeviceID();
+}
 
