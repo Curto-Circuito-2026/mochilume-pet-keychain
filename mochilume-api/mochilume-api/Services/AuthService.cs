@@ -19,10 +19,10 @@ namespace mochilume_api.Services
         public async Task<ServiceResponse<bool>> RegisterAsync(PlayerAuthDto dto)
         {
             var existingUser = await _playerRepository.GetPlayerByUsernameAsync(dto.UserName);
-            if (existingUser != null)
-            {
-                return ServiceResponse<bool>.Error("Nome de usuário já está em uso.");
-            }
+            //if (existingUser != null)
+            //{
+            //    return ServiceResponse<bool>.Error("Nome de usuário já está em uso.");
+            //}
 
             var newPlayer = new PlayerData
             {
@@ -38,9 +38,12 @@ namespace mochilume_api.Services
         public async Task<ServiceResponse<bool>> LoginAsync(PlayerAuthDto dto)
         {
             var user = await _playerRepository.GetPlayerByUsernameAsync(dto.UserName);
+
             if (user == null)
             {
-                return ServiceResponse<bool>.Error("Nome de usuário inválido.");
+                var registerResult = await RegisterAsync(dto);
+                user = await _playerRepository.GetPlayerByUsernameAsync(dto.UserName);
+
             }
 
             bool isPasswordValid = BCrypt.Net.BCrypt.Verify(dto.Password, user.Password);
