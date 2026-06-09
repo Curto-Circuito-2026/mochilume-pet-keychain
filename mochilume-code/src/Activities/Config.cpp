@@ -5,6 +5,9 @@
 #include <UI/UIMenu.h>
 #include <UI/UIKeyboard.h>
 #include "WifiManager.h"
+#include "Requests.h"
+#include <LittleFS.h>
+#include <ArduinoJson.h>
 
 Config::Config() 
     : Activity("config", &config_logo) {}
@@ -178,21 +181,73 @@ void Config::createDataAccountScreen(){
 
     UIMenu* accountMenu = new UIMenu("accountMenu", 80, 50, emptyStyle, emptyStyle, emptyStyle, 1, 0, 0, false);
 
-    //arthur popula isso aqui de verdade com o arquivo json
-    String userName = "oi";
-    bool loggedIn = true;
+    String userName = "";
+    bool loggedIn = false;
+    Serial.println(F("[PlayerFS] Carregando dados do jogador..."));
+    
+    if (LittleFS.exists("/user.json")) {
+        File file = LittleFS.open("/user.json", "r");
+        
+        if (file) {
+            JsonDocument doc;
+            DeserializationError error = deserializeJson(doc, file);
+            if (!error) {
+                const char* savedName = doc["userName"];
+                Serial.println(doc.as<String>());
+                bool isLogged = doc["isLoggedIn"] | false; 
+                if (savedName != nullptr && strlen(savedName) > 0) {
+                    userName = String(savedName);
+                } 
+                loggedIn = isLogged;
+                Serial.println(F("[PlayerFS] Dados carregados com sucesso."));
+                Serial.print(F("User: ")); Serial.println(userName);
+                Serial.print(F("Logged: ")); Serial.println(loggedIn ? "SIM" : "NAO");
+            }
+            else 
+            {
+                Serial.println(F("[PlayerFS] Erro ao desserializar JSON: "));
+                Serial.println(error.c_str());
+            }
+            
+            file.close();
+            }
+    } 
+
+
     if(loggedIn){
         UIElement* saveCloud = new UIElement("saveCloud", 0, 0, button, hoverButton, button);
         saveCloud->setText("Salvar na Nuvem");
         saveCloud->setAction(BTN_A, [this](UIElement* element) {
-            //arthur salva na nuvem aqui
+            //arthur cria upload save aqui
         });
 
         UIElement* logout = new UIElement("logout", 0, 30, button, hoverButton, button);
         logout->setText("Deslogar");
         logout->setAction(BTN_A, [this](UIElement* element) {
-            //arthur cria logout aqui
+            
 
+            JsonDocument doc;
+
+            if (LittleFS.exists("/user.json")) {
+                File readFile = LittleFS.open("/user.json", "r");
+                if (readFile) {
+                    DeserializationError error = deserializeJson(doc, readFile);
+                    readFile.close();
+                }
+            }
+
+            doc["userName"] = "";
+            doc["password"] = "";
+            doc["isLoggedIn"] = false;
+
+            File writeFile = LittleFS.open("/user.json", "w");
+
+            if (serializeJson(doc, writeFile) == 0) {
+                Serial.println(F("[Save] Falha ao gravar os dados no arquivo!"));
+                writeFile.close();
+            }
+            writeFile.close();
+            Serial.println(F("[Save] Dados de usuario salvos com sucesso no LittleFS!"));
             createDataAccountScreen();
             _screen->changeScreen(dataAccount);
         });
@@ -210,7 +265,7 @@ void Config::createDataAccountScreen(){
         registerBtn->setAction(BTN_A, [this](UIElement* element) { Serial.println("IR REGISTER"); _screen->changeScreen(registerAccount); });
             
         accountMenu->addChild(loginBtn);
-        accountMenu->addChild(registerBtn);
+        //accountMenu->addChild(registerBtn);
     }
    
     UIElement* exit = new UIElement("exit", 0, 60, button, hoverButton, button);
@@ -283,7 +338,38 @@ void Config::createLoginAccountScreen(){
     loginConfirm->setAction(BTN_A, [this, userField, passField](UIElement* element) {
         String username = userField->getText();
         String password = passField->getText();
-        //ARTHUR LOGA AQUI
+        PlayerAuthDto authData;
+        username.toCharArray(authData.userName, MAX_USERNAME_LEN);
+        password.toCharArray(authData.password, MAX_PASSWORD_LEN);
+        if (Requests::LoginPlayer(authData))
+        {
+            JsonDocument doc;
+
+            if (LittleFS.exists("/user.json")) {
+                File readFile = LittleFS.open("/user.json", "r");
+                if (readFile) {
+                    DeserializationError error = deserializeJson(doc, readFile);
+                    readFile.close();
+                }
+            }
+
+            doc["userName"] = username;
+            doc["password"] = password;
+            doc["isLoggedIn"] = true;
+
+            File writeFile = LittleFS.open("/user.json", "w");
+            if (!writeFile) {
+                Serial.println(F("[Save] Falha ao abrir o arquivo para escrita!"));
+            }
+
+            if (serializeJson(doc, writeFile) == 0) {
+                Serial.println(F("[Save] Falha ao gravar os dados no arquivo!"));
+                writeFile.close();
+            }
+
+            writeFile.close();
+            Serial.println(F("[Save] Dados de usuario salvos com sucesso no LittleFS!"));
+        }
 
 
         this->createDataAccountScreen();
@@ -364,7 +450,10 @@ void Config::createRegisterAccountScreen(){
     loginConfirm->setAction(BTN_A, [this, userField, passField](UIElement* element) {
         String username = userField->getText();
         String password = passField->getText();
-        //ARTHUR REGISTER AQUI
+        PlayerAuthDto authData;
+        username.toCharArray(authData.userName, MAX_USERNAME_LEN);
+        password.toCharArray(authData.password, MAX_PASSWORD_LEN);
+        Requests::LoginPlayer(authData);
 
         this->createDataAccountScreen();
         this->_screen->changeScreen(dataAccount);

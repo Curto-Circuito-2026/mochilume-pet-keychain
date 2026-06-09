@@ -6,7 +6,7 @@
 
 #define WIFI_CONNECTION_TIMEOUT 10000
 
-enum HTTPMETHOD { GET, POST };
+enum HTTPMETHOD { GET, POST, PUT };
 
 // Estrutura para passar dados para a Task do FreeRTOS
 struct FetchPayload {

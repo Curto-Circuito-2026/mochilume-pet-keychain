@@ -15,6 +15,25 @@ bool Requests::WaitForResponse(String& outResponse, bool& finishedFlag) {
     return true;
 }
 
+static bool ParseServiceResponse(const String& response) {
+    if (response.length() == 0) return false;
+
+    JsonDocument doc;
+    DeserializationError error = deserializeJson(doc, response);
+    if (error) return false;
+
+    if (doc.containsKey("hasError")) {
+        if (doc["hasError"].as<bool>()) {
+            const char* message = doc["message"];
+            if (message) Serial.println(message);
+            return false;
+        }
+        return true;
+    }
+
+    return true;
+}
+
 bool Requests::RegisterPlayer(const PlayerAuthDto& authData) {
     WifiManager* wm = WifiManager::getInstance();
     if (!wm->isConnected) {
@@ -38,12 +57,13 @@ bool Requests::RegisterPlayer(const PlayerAuthDto& authData) {
 
     Serial.print("[Requests] Resposta Register: ");
     Serial.println(response.c_str());
-    return true;
+    return ParseServiceResponse(response);
 }
 
 // 2. LOGIN
 bool Requests::LoginPlayer(const PlayerAuthDto& authData) {
     WifiManager* wm = WifiManager::getInstance();
+    wm->ReConnect();
     if (!wm->isConnected) return false;
 
     StaticJsonDocument<128> doc;
@@ -56,13 +76,16 @@ bool Requests::LoginPlayer(const PlayerAuthDto& authData) {
     String response = "";
     bool finished = false;
 
+    Serial.println(authData.userName);
+    Serial.println(authData.password);
     Serial.println("[Requests] Enviando POST Login...");
     if (!wm->Fetch(AUTH_LOGIN_ENDPOINT, POST, payload, response, finished)) return false;
     if (!WaitForResponse(response, finished)) return false;
 
     Serial.print("[Requests] Resposta Login: ");
     Serial.println(response.c_str());
-    return true; 
+    wm->Disconnect();
+    return ParseServiceResponse(response);
 }
 
 // 3. SAVE UPLOAD
@@ -92,11 +115,11 @@ bool Requests::UploadSave(const PlayerDataDto& saveData) {
     String response = "";
     bool finished = false;
 
-    Serial.println("[Requests] Enviando POST Save Upload...");
-    if (!wm->Fetch(SAVE_UPLOAD_ENDPOINT, POST, payload, response, finished)) return false;
+    Serial.println("[Requests] Enviando PUT Save Upload...");
+    if (!wm->Fetch(SAVE_UPLOAD_ENDPOINT, PUT, payload, response, finished)) return false;
     if (!WaitForResponse(response, finished)) return false;
 
-    return true;
+    return ParseServiceResponse(response);
 }
 
 // 4. SAVE DOWNLOAD

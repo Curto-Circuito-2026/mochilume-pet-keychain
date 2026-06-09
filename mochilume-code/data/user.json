@@ -1,7 +1,10 @@
 {
-    "defaultWIFIID" : "",
-    "defaultWIFIPassword" : "",
-
+    "defaultWIFIID": "",
+    "defaultWIFIPassword": "",
     "steps": 0,
-    "userID": ""
+    "userID": "",
+    "userName": "",
+    "password": "",
+    "isLoggedIn": false,
+    "playerId": 0
 }

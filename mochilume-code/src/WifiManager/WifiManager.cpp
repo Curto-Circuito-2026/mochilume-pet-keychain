@@ -42,20 +42,36 @@ WifiManager* WifiManager::getInstance() {
 void WifiManager::FetchTask(void* pvParameters) {
     FetchPayload* data = (FetchPayload*)pvParameters;
     
-    HTTPClient http;
-    if (http.begin(data->uri)) {
-        http.addHeader("Content-Type", "application/json");
-        int httpCode = -1;
+    WiFiClientSecure *client = new WiFiClientSecure();
+    
+    if (client) {
+        // 2. ISSO AQUI SALVA A SUA RAM: Diz para o chip não validar a cadeia pesada de certificados
+        client->setInsecure(); 
+        
+        HTTPClient http;
+        
+        // 3. Inicializa o HTTP passando o cliente seguro configurado e a URI
+        if (http.begin(*client, data->uri)) {
+            http.addHeader("Content-Type", "application/json");
+            int httpCode = -1;
 
-        switch (data->method) {
-            case GET:  httpCode = http.GET(); break;
-            case POST: httpCode = http.POST(data->payload); break;
-        }
+            switch (data->method) {
+                case GET:  httpCode = http.GET(); break;
+                case POST: httpCode = http.POST(data->payload); break;
+                case PUT:  httpCode = http.PUT(data->payload); break;
+            }
 
-        if (httpCode > 0) {
-            *(data->resultDest) = http.getString();
+            if (httpCode > 0) {
+                *(data->resultDest) = http.getString();
+            } else {
+                Serial.print("[FetchTask] Erro HTTP: ");
+                Serial.println(http.errorToString(httpCode).c_str());
+            }
+            http.end();
         }
-        http.end();
+        
+        // Deleta o cliente da RAM após fechar a conexão
+        delete client;
     }
 
     *(data->finishedFlag) = true;
