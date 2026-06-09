@@ -21,11 +21,24 @@ private:
     MPUData _mpuData;
     bool _btnStates[6]; 
 
-    InputManager();
+    unsigned long passosValidados;
+    int passosCandidatos;
+    unsigned long tempoUltimoPasso;
+    int estadoAtual;
+    bool mpuInitialized;
+
+    int passosLocaisBatch;
+    static const int AMOSTRAS_FILTRO = 10;
+    float historicoMagnitude[AMOSTRAS_FILTRO];
+    int indiceFiltro;
+    int bateryLevel;
+
+    void readIMU();           
+    void processPedometer();
 
 public:
     static InputManager* getInstance();
-
+    unsigned long getSteps();
     bool begin();
     void update();
 
@@ -33,9 +46,11 @@ public:
 
     bool isPressed(uint8_t pin);
     MPUData getIMU() { return _mpuData; }
+    void updateBatteryLevel() {}
+    int getBatteryLevel() { return bateryLevel; };
+    void setSteps(int quantidadeSalvar);
+    void saveSteps(int quantidadeSalvar);
     
-    //fazer quando chegar modulo
-    void handleLoRa(); 
 };
 
 #endif
