@@ -179,7 +179,7 @@ void Menu::setup() {
         1,
         TextAlign::LEFT
     };
-    UIElement* stepsIco = new UIElement("stepIco",22,50,stepIcoStyle,stepIcoStyle,stepIcoStyle);
+    stepsIco = new UIElement("stepIco",22,50,stepIcoStyle,stepIcoStyle,stepIcoStyle);
     stepsIco->setText("20");
 
     UIStyle batteryIcoStyle = {
@@ -196,7 +196,7 @@ void Menu::setup() {
         1,
         TextAlign::LEFT
     };
-    UIElement* batteryIco = new UIElement("batteryIco",190,50,batteryIcoStyle,batteryIcoStyle,batteryIcoStyle);
+    batteryIco = new UIElement("batteryIco",190,50,batteryIcoStyle,batteryIcoStyle,batteryIcoStyle);
     
     screen1->addChild(stepsIco);
     screen1->addChild(batteryIco);
@@ -210,8 +210,19 @@ void Menu::loadActivities(){
 
 
 void Menu::loop() {
-    _screen->getCurScreen()->getChild("stepIco")->setText(String(InputManager::getInstance()->getSteps()));
-    _screen->getCurScreen()->getChild("batteryIco")->setText(String(InputManager::getInstance()->getBatteryLevel()) + "%");
+    int currentSteps = _input->getSteps();
+    int currentBattery = _input->getBatteryLevel();
+
+    if (currentSteps != lastSteps) {
+        stepsIco->setText(String(currentSteps));
+        lastSteps = currentSteps;
+    }
+    
+    if (currentBattery != lastBattery) {
+        String bat = String(currentBattery) + "%";
+        batteryIco->setText(bat);
+        lastBattery = currentBattery;
+    }
     _screen->render();
     
 }

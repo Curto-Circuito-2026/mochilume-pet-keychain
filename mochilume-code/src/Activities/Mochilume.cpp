@@ -285,10 +285,19 @@ std::vector<int> MochilumePet::getSkillPool(){
 
 
 //APP
-
+#define STEPS_TO_XP 10
 Mochilume::Mochilume() 
-    : Activity("mochilume", &mochilume_logo) {}
+    : Activity("mochilume", &mochilume_logo) {
+        lastXpReward = 0;
+    }
 void Mochilume::setup() {
+
+    if(_input->getSteps() - lastXpReward > STEPS_TO_XP){
+        int xp = _input->getSteps() - lastXpReward/STEPS_TO_XP;
+        this->pet->giveXP(xp);
+        lastXpReward = _input->getSteps();
+    }
+
     this->loadBaseData();
 
     this->pet = nullptr;

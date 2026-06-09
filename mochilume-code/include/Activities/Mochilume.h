@@ -119,6 +119,8 @@ private:
     UIScreen* battleSelect;
     UIScreen* battle;
 
+    int lastXpReward;
+
     MochilumePet* pet;
 
     Battle battleInfo;

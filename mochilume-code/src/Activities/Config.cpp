@@ -217,6 +217,7 @@ void UploadSaveToCloud() {
         uName.toCharArray(playerSave.userName, MAX_USERNAME_LEN);
     }
 
+    Serial.println(F("[SaveSystem] buscando arquivo de pet..."));
     if (LittleFS.exists("/mochilume/pets.json")) {
         File petFile = LittleFS.open("/mochilume/pets.json", "r");
         JsonDocument petDoc;
@@ -253,7 +254,53 @@ void UploadSaveToCloud() {
     Serial.print(F("Pet Ativo: ")); Serial.println(playerSave.pets[0].name);
     Serial.println(Requests::UploadSave(playerSave));
 }
+void DownloadSaveFromCloud(){
+    PlayerDataDto playerSave;
 
+    if (LittleFS.exists("/user.json")) {
+        File userFile = LittleFS.open("/user.json", "r");
+        JsonDocument userDoc;
+        deserializeJson(userDoc, userFile);
+        userFile.close();        
+        String username = userDoc["userName"] | "";
+         if (!Requests::DownloadSave(username.c_str(), playerSave)) {
+            Serial.println("[SaveSystem] Falha ao baixar dados do cloud.");
+            return;
+        }
+        
+        Serial.println(playerSave.id);
+        Serial.println(playerSave.userName);
+        userDoc["playerId"] = playerSave.id;
+        userDoc["userName"] = playerSave.userName;
+        userDoc["steps"] = playerSave.steps;
+
+        userFile = LittleFS.open("/user.json", "w");
+        if (userFile) {
+            serializeJson(userDoc, userFile);
+            userFile.close();
+            Serial.println("[SaveSystem] user.json salvo com sucesso.");
+        }
+
+        Serial.println(playerSave.petsCount);
+        Serial.println(playerSave.pets[0].name);
+        if (playerSave.petsCount > 0) {
+            JsonDocument petDoc;
+            petDoc["id"] = playerSave.pets[0].id;
+            petDoc["name"] = playerSave.pets[0].name;
+            petDoc["level"] = playerSave.pets[0].level;
+            petDoc["xp"] = playerSave.pets[0].xp;
+            petDoc["species"] = playerSave.pets[0].species;
+
+            File petFile = LittleFS.open("/mochilume/pets.json", "w");
+            if (petFile) {
+                serializeJson(petDoc, petFile);
+                petFile.close();
+                Serial.println("[SaveSystem] pets.json salvo com sucesso.");
+            }
+        }
+    }
+
+}
 
 void Config::createDataAccountScreen(){
    this->dataAccount = new UIScreen();
@@ -300,7 +347,14 @@ void Config::createDataAccountScreen(){
             UploadSaveToCloud();
         });
 
-        UIElement* logout = new UIElement("logout", 0, 30, button, hoverButton, button);
+        UIElement* downloadCloud = new UIElement("downloadCloud", 0, 30, button, hoverButton, button);
+        downloadCloud->setText("Baixar da Nuvem");
+        downloadCloud->setAction(BTN_A, [this](UIElement* element) {
+            DownloadSaveFromCloud();
+        });
+
+
+        UIElement* logout = new UIElement("logout", 0, 60, button, hoverButton, button);
         logout->setText("Deslogar");
         logout->setAction(BTN_A, [this](UIElement* element) {
             
@@ -333,6 +387,7 @@ void Config::createDataAccountScreen(){
 
         accountMenu->addChild(logout);
         accountMenu->addChild(saveCloud);
+        accountMenu->addChild(downloadCloud);
   
     }else{
         UIElement* loginBtn = new UIElement("loginBtn", 0, 0, button, hoverButton, button);
@@ -344,10 +399,9 @@ void Config::createDataAccountScreen(){
         registerBtn->setAction(BTN_A, [this](UIElement* element) { Serial.println("IR REGISTER"); _screen->changeScreen(registerAccount); });
             
         accountMenu->addChild(loginBtn);
-        //accountMenu->addChild(registerBtn);
     }
    
-    UIElement* exit = new UIElement("exit", 0, 60, button, hoverButton, button);
+    UIElement* exit = new UIElement("exit", 0, 90, button, hoverButton, button);
     exit->setText("Voltar"); 
     exit->setAction(BTN_A, [this](UIElement* element) { Serial.println("IR HOME"); _screen->changeScreen(home); });
 

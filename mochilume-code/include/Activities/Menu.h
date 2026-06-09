@@ -8,7 +8,8 @@ private:
    
 
 
-
+    int lastSteps = -1;
+    int lastBattery = -1;
     void loadActivities();
 public:
     Menu();
@@ -19,6 +20,8 @@ public:
     UIElement* appName;
     UIElement* leftApp;
     UIElement* rightApp;
+    UIElement* stepsIco;
+    UIElement* batteryIco;
     std::vector<Activity*> activities;
 
     void setup() override;

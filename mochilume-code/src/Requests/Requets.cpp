@@ -155,11 +155,13 @@ bool Requests::DownloadSave(const char* username, PlayerDataDto& outSaveData) {
         return false;
     }
 
-    outSaveData.id = doc["id"];
-    strlcpy(outSaveData.userName, doc["userName"] | "", sizeof(outSaveData.userName));
-    outSaveData.steps = doc["steps"];
+    outSaveData.id = doc["model"]["id"];
+    Serial.println(response);
+    strlcpy(outSaveData.userName, doc["model"]["userName"] | "", sizeof(outSaveData.userName));
+    outSaveData.steps = doc["model"]["steps"];
 
-    JsonArray petsArray = doc["pets"].as<JsonArray>();
+    JsonArray petsArray = doc["model"]["pets"].as<JsonArray>();
+    Serial.println(petsArray);
     outSaveData.petsCount = 0;
 
     for (JsonObject petObj : petsArray) {

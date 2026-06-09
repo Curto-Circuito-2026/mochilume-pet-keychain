@@ -21,7 +21,7 @@ private:
     MPUData _mpuData;
     bool _btnStates[6]; 
 
-    unsigned long passosValidados;
+    volatile unsigned long passosValidados;
     int passosCandidatos;
     unsigned long tempoUltimoPasso;
     int estadoAtual;
