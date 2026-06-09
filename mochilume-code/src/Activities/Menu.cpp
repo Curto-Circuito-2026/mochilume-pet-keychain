@@ -165,6 +165,41 @@ void Menu::setup() {
         this->mainApp->setSelectedStyle(nL);
     });
 
+    UIStyle stepIcoStyle = {
+        11,13,
+        0,
+        0,
+        true,
+        &step_ico,
+
+        0,
+        0,0,
+        13,4,
+        COLOR_TEXT_MINT,
+        1,
+        TextAlign::LEFT
+    };
+    UIElement* stepsIco = new UIElement("stepIco",22,50,stepIcoStyle,stepIcoStyle,stepIcoStyle);
+    stepsIco->setText("20");
+
+    UIStyle batteryIcoStyle = {
+        11,13,
+        0,
+        0,
+        true,
+        &battery_ico,
+
+        2,
+        0,0,
+        13,4,
+        COLOR_TEXT_MINT,
+        1,
+        TextAlign::LEFT
+    };
+    UIElement* batteryIco = new UIElement("batteryIco",190,50,batteryIcoStyle,batteryIcoStyle,batteryIcoStyle);
+    
+    screen1->addChild(stepsIco);
+    screen1->addChild(batteryIco);
     screen1->setSelectedIndex(0);
     _screen->changeScreen(screen1);
 };
@@ -175,6 +210,8 @@ void Menu::loadActivities(){
 
 
 void Menu::loop() {
+    _screen->getCurScreen()->getChild("stepIco")->setText(String(InputManager::getInstance()->getSteps()));
+    _screen->getCurScreen()->getChild("batteryIco")->setText(String(InputManager::getInstance()->getBatteryLevel()) + "%");
     _screen->render();
     
 }
