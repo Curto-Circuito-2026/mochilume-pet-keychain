@@ -36,6 +36,7 @@ static bool ParseServiceResponse(const String& response) {
 
 bool Requests::RegisterPlayer(const PlayerAuthDto& authData) {
     WifiManager* wm = WifiManager::getInstance();
+    wm->ReConnect();
     if (!wm->isConnected) {
         Serial.println("[Requests] Sem conexao Wi-Fi para registrar.");
         return false;
@@ -57,6 +58,7 @@ bool Requests::RegisterPlayer(const PlayerAuthDto& authData) {
 
     Serial.print("[Requests] Resposta Register: ");
     Serial.println(response.c_str());
+    wm->Disconnect();
     return ParseServiceResponse(response);
 }
 
@@ -90,14 +92,16 @@ bool Requests::LoginPlayer(const PlayerAuthDto& authData) {
 
 // 3. SAVE UPLOAD
 bool Requests::UploadSave(const PlayerDataDto& saveData) {
+    Serial.println("[Requests] Preparando dados para upload...");
     WifiManager* wm = WifiManager::getInstance();
+    wm->ReConnect();
     if (!wm->isConnected) return false;
 
     DynamicJsonDocument doc(2048); 
     doc["id"] = saveData.id;
     doc["userName"] = saveData.userName;
     doc["steps"] = saveData.steps;
-
+    
     JsonArray petsArray = doc.createNestedArray("pets");
     for (int i = 0; i < saveData.petsCount; i++) {
         JsonObject petObj = petsArray.createNestedObject();
@@ -116,15 +120,19 @@ bool Requests::UploadSave(const PlayerDataDto& saveData) {
     bool finished = false;
 
     Serial.println("[Requests] Enviando PUT Save Upload...");
+    Serial.println(payload);
     if (!wm->Fetch(SAVE_UPLOAD_ENDPOINT, PUT, payload, response, finished)) return false;
     if (!WaitForResponse(response, finished)) return false;
-
+    Serial.print("[Requests] Resposta Save Upload: ");
+    Serial.println(response.c_str());
+    wm->Disconnect();
     return ParseServiceResponse(response);
 }
 
 // 4. SAVE DOWNLOAD
 bool Requests::DownloadSave(const char* username, PlayerDataDto& outSaveData) {
     WifiManager* wm = WifiManager::getInstance();
+    wm->ReConnect();
     if (!wm->isConnected) return false;
 
     char fullUrl[256];
@@ -169,5 +177,6 @@ bool Requests::DownloadSave(const char* username, PlayerDataDto& outSaveData) {
     }
 
     Serial.println("[Requests] Save baixado e populado com sucesso!");
+    wm->Disconnect();
     return true;
 }

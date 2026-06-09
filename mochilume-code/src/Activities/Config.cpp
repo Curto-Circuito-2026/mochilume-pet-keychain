@@ -8,6 +8,7 @@
 #include "Requests.h"
 #include <LittleFS.h>
 #include <ArduinoJson.h>
+#include <Models.h>
 
 Config::Config() 
     : Activity("config", &config_logo) {}
@@ -176,6 +177,63 @@ void Config::createWifiListScreen(){
     this->screens["wifiList"] = wifiList;
 }
 
+
+void UploadSaveToCloud() {
+    PlayerDataDto playerSave;
+    memset(&playerSave, 0, sizeof(PlayerDataDto)); 
+
+
+    if (LittleFS.exists("/user.json")) {
+        File userFile = LittleFS.open("/user.json", "r");
+        JsonDocument userDoc;
+        deserializeJson(userDoc, userFile);
+        userFile.close();
+
+        playerSave.id = userDoc["playerId"] | 0;
+        playerSave.steps = userDoc["steps"] | 0;
+        
+        String uName = userDoc["userName"] | "";
+        uName.toCharArray(playerSave.userName, MAX_USERNAME_LEN);
+    }
+
+    if (LittleFS.exists("/mochilume/pets.json")) {
+        File petFile = LittleFS.open("/mochilume/pets.json", "r");
+        JsonDocument petDoc;
+        
+        Serial.println(F("[SaveSystem] Carregando dados do pet..."));
+        
+        DeserializationError error = deserializeJson(petDoc, petFile);
+        petFile.close();
+
+        if (!error) {
+            serializeJson(petDoc, Serial); 
+            Serial.println(); 
+            playerSave.pets[0].id = petDoc["id"] | 0; 
+            playerSave.pets[0].level = petDoc["level"] | 1;
+            playerSave.pets[0].xp = petDoc["xp"] | 0;
+            playerSave.pets[0].species = petDoc["species"] | 0;
+            playerSave.pets[0].isActive = true; 
+            String pName = petDoc["name"] | "Pet";
+            pName.toCharArray(playerSave.pets[0].name, MAX_PET_NAME_LEN);
+
+            playerSave.petsCount = 1;
+        } else {
+            Serial.print(F("[SaveSystem] Erro ao ler pets.json: "));
+            Serial.println(error.f_str());
+            playerSave.petsCount = 0;
+        }
+    } else {
+        playerSave.petsCount = 0; 
+    }
+
+    Serial.println(F("[SaveSystem] Struct PlayerDataDto montado com sucesso!"));
+    Serial.print(F("User: ")); Serial.println(playerSave.userName);
+    Serial.print(F("Passos: ")); Serial.println(playerSave.steps);
+    Serial.print(F("Pet Ativo: ")); Serial.println(playerSave.pets[0].name);
+    Serial.println(Requests::UploadSave(playerSave));
+}
+
+
 void Config::createDataAccountScreen(){
    this->dataAccount = new UIScreen();
 
@@ -218,7 +276,7 @@ void Config::createDataAccountScreen(){
         UIElement* saveCloud = new UIElement("saveCloud", 0, 0, button, hoverButton, button);
         saveCloud->setText("Salvar na Nuvem");
         saveCloud->setAction(BTN_A, [this](UIElement* element) {
-            //arthur cria upload save aqui
+            UploadSaveToCloud();
         });
 
         UIElement* logout = new UIElement("logout", 0, 30, button, hoverButton, button);
