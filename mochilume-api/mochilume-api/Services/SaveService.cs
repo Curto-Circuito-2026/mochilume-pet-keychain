@@ -26,20 +26,30 @@ namespace mochilume_api.Services
                 return ServiceResponse<PlayerDataDto>.Error("Usuário não encontrado.");
             }
 
+            var highestIdPet = user.Pets
+                .OrderByDescending(p => p.Id)
+                .FirstOrDefault();
+
+            var petsList = new List<PetDataDto>();
+            if (highestIdPet != null)
+            {
+                petsList.Add(new PetDataDto
+                {
+                    Id = highestIdPet.Id,
+                    Name = highestIdPet.Name,
+                    Level = highestIdPet.Level,
+                    Xp = highestIdPet.Xp,
+                    Species = highestIdPet.Species,
+                    IsActive = highestIdPet.IsActive
+                });
+            }
+
             var dto = new PlayerDataDto
             {
                 Id = user.Id,
                 UserName = user.UserName,
                 Steps = user.Steps,
-                Pets = user.Pets.Select(p => new PetDataDto
-                {
-                    Id = p.Id,
-                    Name = p.Name,
-                    Level = p.Level,
-                    Xp = p.Xp,
-                    Species = p.Species,
-                    IsActive = p.IsActive
-                }).ToList()
+                Pets = petsList 
             };
 
             return ServiceResponse<PlayerDataDto>.Success(dto);
