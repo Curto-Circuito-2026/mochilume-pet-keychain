@@ -292,17 +292,18 @@ Mochilume::Mochilume()
     }
 void Mochilume::setup() {
 
+    this->loadBaseData();
+
+    this->pet = nullptr;
+    this->loadPetData();
+    
     if(_input->getSteps() - lastXpReward > STEPS_TO_XP){
         int xp = _input->getSteps() - lastXpReward/STEPS_TO_XP;
         this->pet->giveXP(xp);
         lastXpReward = _input->getSteps();
     }
 
-    this->loadBaseData();
 
-    this->pet = nullptr;
-    this->loadPetData();
-    
     this->createHomeScreen();
     this->createStatsScreen();
     this->createBattleSelectionScreen();
