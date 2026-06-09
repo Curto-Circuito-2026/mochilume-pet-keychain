@@ -184,7 +184,5 @@ void InputManager::setSteps(int quantidadeSalvar) {
 }
 
 unsigned long InputManager::getSteps() {
-    Serial.print("Passos validados: ");
-    Serial.println(passosValidados);
     return passosValidados;
 }
