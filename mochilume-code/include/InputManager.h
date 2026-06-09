@@ -46,7 +46,7 @@ public:
 
     bool isPressed(uint8_t pin);
     MPUData getIMU() { return _mpuData; }
-    void updateBatteryLevel() {}
+    void updateBatteryLevel();
     int getBatteryLevel() { return bateryLevel; };
     void setSteps(int quantidadeSalvar);
     void saveSteps(int quantidadeSalvar);
