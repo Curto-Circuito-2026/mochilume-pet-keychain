@@ -178,20 +178,45 @@ void Config::createDataAccountScreen(){
 
     UIMenu* accountMenu = new UIMenu("accountMenu", 80, 50, emptyStyle, emptyStyle, emptyStyle, 1, 0, 0, false);
 
-    UIElement* loginBtn = new UIElement("loginBtn", 0, 0, button, hoverButton, button);
-    loginBtn->setText("Login");
-    loginBtn->setAction(BTN_A, [this](UIElement* element) { Serial.println("IR LOGIN"); _screen->changeScreen(loginAccount); });
+    //arthur popula isso aqui de verdade com o arquivo json
+    String userName = "oi";
+    bool loggedIn = true;
+    if(loggedIn){
+        UIElement* saveCloud = new UIElement("saveCloud", 0, 0, button, hoverButton, button);
+        saveCloud->setText("Salvar na Nuvem");
+        saveCloud->setAction(BTN_A, [this](UIElement* element) {
+            //arthur salva na nuvem aqui
+        });
 
-    UIElement* registerBtn = new UIElement("registerBtn", 0, 30, button, hoverButton, button);
-    registerBtn->setText("Registrar");
-    registerBtn->setAction(BTN_A, [this](UIElement* element) { Serial.println("IR REGISTER"); _screen->changeScreen(registerAccount); });
+        UIElement* logout = new UIElement("logout", 0, 30, button, hoverButton, button);
+        logout->setText("Deslogar");
+        logout->setAction(BTN_A, [this](UIElement* element) {
+            //arthur cria logout aqui
 
+            createDataAccountScreen();
+            _screen->changeScreen(dataAccount);
+        });
+
+        accountMenu->addChild(logout);
+        accountMenu->addChild(saveCloud);
+  
+    }else{
+        UIElement* loginBtn = new UIElement("loginBtn", 0, 0, button, hoverButton, button);
+        loginBtn->setText("Login");
+        loginBtn->setAction(BTN_A, [this](UIElement* element) { Serial.println("IR LOGIN"); _screen->changeScreen(loginAccount); });
+
+        UIElement* registerBtn = new UIElement("registerBtn", 0, 30, button, hoverButton, button);
+        registerBtn->setText("Registrar");
+        registerBtn->setAction(BTN_A, [this](UIElement* element) { Serial.println("IR REGISTER"); _screen->changeScreen(registerAccount); });
+            
+        accountMenu->addChild(loginBtn);
+        accountMenu->addChild(registerBtn);
+    }
+   
     UIElement* exit = new UIElement("exit", 0, 60, button, hoverButton, button);
     exit->setText("Voltar"); 
     exit->setAction(BTN_A, [this](UIElement* element) { Serial.println("IR HOME"); _screen->changeScreen(home); });
 
-    accountMenu->addChild(loginBtn);
-    accountMenu->addChild(registerBtn);
     accountMenu->addChild(exit);
     accountMenu->setSelectedIndex(0);
     accountMenu->setState(UIState::SELECTED);
@@ -255,10 +280,15 @@ void Config::createLoginAccountScreen(){
         });
     });
 
-    loginConfirm->setAction(BTN_A, [userField, passField](UIElement* element) {
+    loginConfirm->setAction(BTN_A, [this, userField, passField](UIElement* element) {
         String username = userField->getText();
         String password = passField->getText();
-        Serial.print("Tentativa Login -> Usr: "); Serial.print(username); Serial.print(" | Pwd: "); Serial.println(password);
+        //ARTHUR LOGA AQUI
+
+
+        this->createDataAccountScreen();
+        this->_screen->changeScreen(dataAccount);
+       
     });
 
     exit->setAction(BTN_A, [this](UIElement* element) { 
@@ -331,10 +361,14 @@ void Config::createRegisterAccountScreen(){
         });
     });
 
-    loginConfirm->setAction(BTN_A, [userField, passField](UIElement* element) {
+    loginConfirm->setAction(BTN_A, [this, userField, passField](UIElement* element) {
         String username = userField->getText();
         String password = passField->getText();
-        Serial.print("Tentativa Login -> Usr: "); Serial.print(username); Serial.print(" | Pwd: "); Serial.println(password);
+        //ARTHUR REGISTER AQUI
+
+        this->createDataAccountScreen();
+        this->_screen->changeScreen(dataAccount);
+       
     });
 
     exit->setAction(BTN_A, [this](UIElement* element) { 
