@@ -3,6 +3,19 @@
 .vscode
 
 
+# .NET / ASP.NET Core
+bin/
+obj/
+*.user
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
+*.DotSettings.user
+.vs/
+appsettings.Development.json
+
+
 # For PCBs designed using KiCad: https://www.kicad.org/
 # Format documentation: https://kicad.org/help/file-formats/
 

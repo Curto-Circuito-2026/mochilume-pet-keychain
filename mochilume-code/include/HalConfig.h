@@ -1,0 +1,71 @@
+#ifndef HAL_CONFIG_H
+#define HAL_CONFIG_H
+
+#include <Arduino.h>
+
+// --- DISPLAY SETTINGS (GC9A01) ---
+#define TFT_RES      4
+#define TFT_CS       5
+#define TFT_DC       15
+#define TFT_MOSI     23
+#define TFT_SCLK     18
+#define TFT_BL       22
+
+#define SCREEN_WIDTH  240
+#define SCREEN_HEIGHT 240
+#define SCREEN_RADIUS 120
+#define SCREEN_CENTER 120
+
+// --- BUTTONS ---
+//definir pinos reais
+#define BTN_UP      26    
+#define BTN_DOWN    25    
+#define BTN_LEFT    35    
+#define BTN_RIGHT   27    
+#define BTN_A       16   
+#define BTN_B       17     
+
+// --- SYSTEM SETTINGS ---
+#define TARGET_FPS   60
+#define FRAME_DELAY  (1000 / TARGET_FPS)
+
+// --- LORA SX1268 (SPI) ---
+
+#define LORA_SPI_SCK  14  
+#define LORA_SPI_MOSI 13  
+#define LORA_SPI_MISO 12  
+
+#define LORA_CS        2  
+#define LORA_RST      32  
+#define LORA_DIO1     33  
+#define LORA_BUSY     34  
+
+//Battery
+#define BATTERY_PIN 36
+
+// --- STORAGE (SD CARD) ---
+#define SD_CS        2
+
+// --- SENSORS (I2C) ---
+#define MPU_SDA      21
+#define MPU_SCL      22
+#define MPU_TRIG     19
+// --- API URLS ---
+#define API_BASE_URL "https://api-mochilume-acd9htg9ghhacghy.brazilsouth-01.azurewebsites.net"
+// Global
+#define HEALTH_ENDPOINT       API_BASE_URL "/health"
+// Auth
+#define AUTH_REGISTER_ENDPOINT API_BASE_URL "/api/Auth/register"
+#define AUTH_LOGIN_ENDPOINT    API_BASE_URL "/api/Auth/login"
+// Save System
+#define SAVE_UPLOAD_ENDPOINT   API_BASE_URL "/api/Save/upload"
+// Para o download, você pode concatenar o username direto na string se preferir, 
+// ou usar como base para um sprintf/snprintf formatado:
+#define SAVE_DOWNLOAD_BASE_URL API_BASE_URL "/api/Save/"
+#define SAVE_DOWNLOAD_SUFFIX   "/download"
+
+//PATH DE ARQUIVO DE SAVE
+#define PLAYER_SAVE_PATH "/player.sav"
+
+
+#endif

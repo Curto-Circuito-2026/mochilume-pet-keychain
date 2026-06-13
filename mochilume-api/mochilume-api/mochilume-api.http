@@ -1,0 +1,6 @@
+@mochilume_api_HostAddress = http://localhost:5008
+
+GET {{mochilume_api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

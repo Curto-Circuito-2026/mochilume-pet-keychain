@@ -1,37 +1,79 @@
 #include <Arduino.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_GC9A01A.h>
-#include <SPI.h>
+#include "HalConfig.h"
+#include "DisplayManager.h"
+#include "ActivityManager.h"
+#include "InputManager.h"
+#include "Activities/Menu.h"
+#include "Activities/Config.h"
+#include "Activities/Mochilume.h"
+#include <WifiManager.h>
+#include <SaveManager.h>
+#include <LoraManager.h>
+#include <LittleFS.h>
 
+DisplayManager* display;
+ScreenManager* screen;
+ActivityManager* activity;
+SaveManager* save;
+InputManager* input;
+WifiManager* wifiManager;
+LoraManager* loraManager;
 
-#define TFT_RES  4    //TFT_RES
-#define TFT_CS   5    //TFT_CS
-#define TFT_DC   15   //TFT_A0
-#define TFT_MOSI 23   //TFT_SDA
-#define TFT_SCLK 18   //TFT_SCK
-#define SCREEN_WIDTH 240
-#define SCREEN_HEIGHT 240
-#define FPS 60
-
-Adafruit_GC9A01A screen(TFT_CS, TFT_DC);
-
-int y = 0;
+Menu* menuActivity = nullptr;
+Config* configActivity = nullptr;
+Mochilume* mochilumeActivity = nullptr;
 
 void setup() {
-  Serial.begin(115200);
-  screen.begin();
-  screen.fillScreen(GC9A01A_BLACK);
+    Serial.begin(115200);
+    LittleFS.begin(true);
+    Serial.println("DISPLAY START");
+    display = DisplayManager::getInstance();
+    display->begin();
+    Serial.println("DISPLAY OK");
+    
+    Serial.println("INPUT START");
+    input = InputManager::getInstance();
+    input->begin();
+    Serial.println("INPUT OK");
+    
+    Serial.println("ACTIVITY START");
+    activity = ActivityManager::getInstance();
+    Serial.println("ACTIVITY OK");
 
+    Serial.println("SCREEN START");
+    screen = ScreenManager::getInstance();
+    Serial.println("SCREEN OK");
+
+    Serial.println("FILES START");
+    save = SaveManager::getInstance();
+    save->begin();
+    Serial.println("FILES OK");
+
+    wifiManager = WifiManager::getInstance();
+    Serial.println("WIFI OK");
+    
+    loraManager = LoraManager::getInstance();
+    Serial.println("BEFORE BEGIN");
+    loraManager->begin();
+    Serial.println("LORA OK");
+   
+
+    configActivity = new Config();
+    activity->registerActivity(configActivity);
+
+    mochilumeActivity = new Mochilume();
+    activity->registerActivity(mochilumeActivity);
+
+    menuActivity = new Menu();
+    activity->registerActivity(menuActivity);
+    
+    activity->setActivity("menu");
+
+    Serial.println("Mochilume OS: Setup Finalizado.");
 }
 
 void loop() {
-  int oldY = y;
-  y += 9.81;
-  if (y>=240+55)
-  {
-    y=0;
-  }
-  screen.fillRect(100,oldY,50,55,GC9A01A_BLACK);
-  screen.fillRect(100,y,50,55,GC9A01A_RED);
-  delay(100);
+    loraManager->loop();
+    input->update();
+    activity->loopActivity();
 }
